@@ -10,7 +10,14 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.common.ForwardingPlayer
+import android.content.Context
+import android.media.AudioDeviceCallback
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import androidx.media3.common.C
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -37,6 +44,25 @@ object AndroidPlaybackEvents {
 class PlaybackService : MediaSessionService() {
   private lateinit var player: ExoPlayer
   private lateinit var mediaSession: MediaSession
+  /** Paused because headphones, a Bluetooth speaker or the car went away: play again when one is
+   * back. Any later play or pause by the user drops it. */
+  private var pausedByUnplug = false
+  private val handler = Handler(Looper.getMainLooper())
+  private val resumeOnReconnect = Runnable {
+    if (pausedByUnplug && player.currentMediaItem != null && player.playbackState != Player.STATE_ENDED) {
+      player.play()
+    }
+  }
+  private val headphones = object : AudioDeviceCallback() {
+    override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
+      // Android routes audio to a device a moment after announcing it: wait so the first notes
+      // don't come out of the phone's speaker.
+      if (pausedByUnplug && addedDevices.any { it.isSink && it.type in HEADPHONE_TYPES }) {
+        handler.removeCallbacks(resumeOnReconnect)
+        handler.postDelayed(resumeOnReconnect, 1_500)
+      }
+    }
+  }
 
   override fun onCreate() {
     super.onCreate()
@@ -47,7 +73,15 @@ class PlaybackService : MediaSessionService() {
       // Keep HTTP playback and also route app-private file paths through FileDataSource.
       .setMediaSourceFactory(DefaultMediaSourceFactory(DefaultDataSource.Factory(this, factory)))
       .build()
-    player.setAudioAttributes(AudioAttributes.DEFAULT, true)
+    // Audio focus: a call or another app's audio pauses this and it resumes afterwards.
+    player.setAudioAttributes(
+      AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).build(),
+      true,
+    )
+    // Pause when headphones are unplugged or a Bluetooth device disconnects (Android's "becoming
+    // noisy"), rather than carrying on out of the phone's speaker.
+    player.setHandleAudioBecomingNoisy(true)
+    (getSystemService(Context.AUDIO_SERVICE) as AudioManager).registerAudioDeviceCallback(headphones, handler)
     applyGain()
     player.addListener(object : Player.Listener {
       override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -66,6 +100,11 @@ class PlaybackService : MediaSessionService() {
       override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) = updateWidget()
 
       override fun onIsPlayingChanged(isPlaying: Boolean) = updateWidget()
+
+      override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+        pausedByUnplug = !playWhenReady && reason == Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_BECOMING_NOISY
+        if (!pausedByUnplug) handler.removeCallbacks(resumeOnReconnect)
+      }
     })
     mediaSession = MediaSession.Builder(this, QueueControlPlayer(player))
       .setCallback(LikeCallback())
@@ -121,6 +160,8 @@ class PlaybackService : MediaSessionService() {
   override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession = mediaSession
 
   override fun onDestroy() {
+    handler.removeCallbacks(resumeOnReconnect)
+    (getSystemService(Context.AUDIO_SERVICE) as AudioManager).unregisterAudioDeviceCallback(headphones)
     mediaSession.release()
     player.release()
     httpFactory = null
@@ -133,19 +174,43 @@ class PlaybackService : MediaSessionService() {
       .buildUpon()
       .add(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
       .add(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
+      .add(Player.COMMAND_SEEK_TO_NEXT)
+      .add(Player.COMMAND_SEEK_TO_PREVIOUS)
       .build()
 
+    // The queue lives in the app, so next and previous go to it from every source: the
+    // notification, Bluetooth headphones and the car (media buttons arrive as seekToNext /
+    // seekToPrevious). Left to ExoPlayer, they would skip to the preloaded item behind the app's
+    // back, or do nothing when there is none.
     override fun seekToNextMediaItem() {
+      AndroidPlaybackEvents.add("next")
+    }
+
+    override fun seekToNext() {
       AndroidPlaybackEvents.add("next")
     }
 
     override fun seekToPreviousMediaItem() {
       AndroidPlaybackEvents.add("previous")
     }
+
+    override fun seekToPrevious() {
+      AndroidPlaybackEvents.add("previous")
+    }
   }
 
   companion object {
     private val LIKE = SessionCommand("com.limusic.LIKE", Bundle.EMPTY)
+    /** Where music goes when it isn't the phone's speaker. Not Bluetooth SCO: that is a car or
+     * headset connected for calls only. */
+    private val HEADPHONE_TYPES = setOf(
+      AudioDeviceInfo.TYPE_WIRED_HEADSET,
+      AudioDeviceInfo.TYPE_WIRED_HEADPHONES,
+      AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+      AudioDeviceInfo.TYPE_USB_HEADSET,
+      AudioDeviceInfo.TYPE_BLE_HEADSET,
+      AudioDeviceInfo.TYPE_BLE_SPEAKER,
+    )
     @Volatile private var liked = false
 
     /** The widget's play button: toggle the player if the service is up. False when it isn't. */

@@ -312,3 +312,18 @@ Detalle y estado de cada tarea en `TAREAS_MOVIL.md`. Resumen de lo aplicado:
   que no pasaba nada. La APK lleva la cuenta de bytes (`ApkUpdater`) y la interfaz la consulta cada
   300 ms (`apk_update_progress`). Publicado en la **v1.4.3**; la barra se ve a partir de la
   siguiente actualización, porque quien instala la 1.4.3 desde la 1.4.2 usa todavía el aviso antiguo.
+
+## Auriculares, Bluetooth y coche (06/11/2026)
+
+- [x] Al quitar los auriculares o desconectar unos cascos Bluetooth, un altavoz o el coche, la música
+  se pausa en vez de seguir por el altavoz del teléfono (`setHandleAudioBecomingNoisy`).
+- [x] Si se pausó por eso, vuelve a sonar sola al conectar otra vez unos auriculares, un dispositivo
+  Bluetooth de audio o el coche (con 1,5 s de margen para que Android cambie la salida). Si el usuario
+  pausa o reproduce a mano entretanto, no se reanuda sola. Las conexiones solo para llamadas (SCO) no
+  cuentan.
+- [x] Los botones siguiente/anterior de auriculares Bluetooth y del coche llegan a la cola de la app.
+  Antes ExoPlayer los atendía por su cuenta: no hacían nada o saltaban a la canción precargada sin que
+  la app se enterase.
+- [x] Las llamadas ya pausaban y reanudaban por el foco de audio; ahora el audio se declara como música.
+- [ ] Sin probar en el teléfono. Si Android cierra la app mientras está en pausa mucho tiempo, no
+  podrá reanudar al conectar (la exención de batería ayuda).

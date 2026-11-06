@@ -96,6 +96,9 @@ Estado: `[ ]` pendiente · `[~]` en curso · `[x]` hecho · `[?]` necesita una d
   → Comprobado sin vídeo: abre, se ve y atrás lo cierra. Se corrigió que quedara bajo la barra de estado y los botones de Android. Falta probarlo con un vídeo.
 - [ ] **Audio:** desconectar auriculares pausa; una llamada interrumpe y luego se reanuda; botones de
   auriculares Bluetooth; paso a la siguiente canción con la pantalla apagada.
+  → Corregido en la v1.4.4 (sin probar en el teléfono): pausa al quitar auriculares o desconectar el
+  Bluetooth o el coche y sigue al volver a conectarlos; siguiente/anterior de auriculares y coche van a
+  la cola de la app.
 - [ ] **Música local:** subcarpetas, varios formatos (FLAC, M4A, OGG…), bibliotecas grandes y errores.
 - [ ] **Importación de Spotify**, textos largos y tamaño de letra del sistema grande.
 - [ ] **Sin conexión o con mala red:** qué ve el usuario y si se recupera solo al volver la red.
