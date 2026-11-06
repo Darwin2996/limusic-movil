@@ -82,13 +82,16 @@ Estado: `[ ]` pendiente · `[~]` en curso · `[x]` hecho · `[?]` necesita una d
 
 - [ ] **Descifrado sin WebView** (QuickJS, ya en las dependencias) para recuperar los clientes de YouTube
   que hoy se omiten en Android. Todo suena por VISIONOS; si falla, no hay alternativa.
+  → Mitigado: si fallan todos los clientes directos, el orquestador ya recurre a rustypipe, que trae su propio descifrado con QuickJS y compila para Android. No se ha forzado ese camino en el teléfono (habría que desactivar clientes y cambiar la cola).
 - [ ] **PoToken no disponible en Android** («BotGuard is not available in this Android build»). Si YouTube
   lo empieza a exigir, la reproducción podría fallar con errores 403. Vigilar.
-- [ ] **Renovar la sesión de Google en segundo plano:** hoy, si caduca, hay que volver a iniciar sesión.
+- [x] **Renovar la sesión de Google en segundo plano:** hoy, si caduca, hay que volver a iniciar sesión.
+  → Hecho: un WebView nativo fuera de pantalla (`GoogleSessionRefresher.kt`) carga music.youtube.com con el almacén de cookies del inicio de sesión, y Rust aplica la misma comprobación de cuenta que escritorio. Solo se activa cuando YouTube rechaza la sesión (401), así que no se ha podido provocar en la prueba; la app arranca sin errores.
 
 ### Pruebas pendientes en el teléfono
 
-- [ ] **Escuchar juntos** con otra persona, tras el arreglo de la pantalla en blanco.
+- [x] **Escuchar juntos** con otra persona, tras el arreglo de la pantalla en blanco.
+  → Confirmado por el usuario: funciona.
 - [x] **Modo Teatro**, con y sin vídeo.
   → Comprobado sin vídeo: abre, se ve y atrás lo cierra. Se corrigió que quedara bajo la barra de estado y los botones de Android. Falta probarlo con un vídeo.
 - [ ] **Audio:** desconectar auriculares pausa; una llamada interrumpe y luego se reanuda; botones de
@@ -105,7 +108,7 @@ Estado: `[ ]` pendiente · `[~]` en curso · `[x]` hecho · `[?]` necesita una d
 - [x] **Reproductor ampliado a pantalla completa:** portada grande, título y artista legibles, controles
   propios, deslizar hacia abajo para cerrar y a los lados para cambiar de canción. Cola, letra y
   comentarios como pestañas o paneles inferiores. El botón atrás lo cierra antes de cambiar de página.
-  → Hecho en parte: pantalla completa con controles propios, atrás lo cierra y deslizar en la barra plegada cambia de canción. La portada podría crecer más.
+  → Hecho: pantalla completa con controles propios, atrás lo cierra, deslizar en la barra plegada cambia de canción y la portada ocupa ahora el 60 % de la pantalla (antes el 50 %).
 - [x] **Barra compacta en una sola fila:** hoy ocupa tres (canción, progreso y controles). Una fila con
   portada, título, reproducir/pausa y siguiente, más una línea de progreso fina.
 
@@ -129,7 +132,7 @@ Estado: `[ ]` pendiente · `[~]` en curso · `[x]` hecho · `[?]` necesita una d
   → Hecho: selectores y pestañas de Estadísticas, búsquedas recientes, buscadores de lista, reproducir en tarjetas, botones de Biblioteca, barra de progreso (40 px) y filas de los menús (48 px). Los nombres de artista se dejan: son enlaces dentro del texto (exentos según WCAG 2.5.8) y la fila y su menú ya llevan al artista.
 - [x] **Textos demasiado pequeños:** barra inferior (10,4 px), insignia «Experimental» (10 px) y
   «usuarios mensuales» en artistas relacionados (11 px).
-  → Hecho: barra inferior a 12 px. Quedan la insignia «Experimental» y «usuarios mensuales».
+  → Hecho: barra inferior a 12 px; en móvil, la insignia «Experimental» a 11 px y los subtítulos de las tarjetas pequeñas («usuarios mensuales») a 12 px.
 - [x] **Contraste:** números de posición en «Artistas familiares» (morado sobre foto), textos grises
   sobre fondo oscuro, y «suscriptores»/«usuarios mensuales» sobre la foto del artista (añadir degradado).
 - [x] **Estados que solo se distinguen por el color** (pestaña activa, «me gusta» marcado): añadir forma,

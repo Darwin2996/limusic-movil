@@ -166,7 +166,7 @@
 				<div
 					class="flex items-center gap-1 text-muted-foreground {round
 						? 'justify-center'
-						: ''} {compact ? 'text-[0.6875rem]' : 'text-xs'}"
+						: ''} {compact ? 'text-[0.6875rem] max-md:text-xs' : 'text-xs'}"
 				>
 					{#if item.explicit}
 						<ExplicitIcon class="h-3 w-3 shrink-0" />

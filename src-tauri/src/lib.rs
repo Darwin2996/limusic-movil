@@ -129,6 +129,20 @@ async fn pick_android_local_folder(app: tauri::AppHandle) -> Result<Option<Strin
     }
 }
 
+/// Drive the off-screen session-refresh WebView (`GoogleSessionRefresher` in Kotlin) with one of
+/// `openGoogleRefresh`, `readGoogleCookies` or `closeGoogleRefresh`.
+#[cfg(target_os = "android")]
+pub(crate) async fn android_google_refresh(
+    app: &tauri::AppHandle,
+    command: &str,
+) -> Result<serde_json::Value, String> {
+    let plugin = app.state::<AndroidPlayerPluginHandle>().0.clone();
+    plugin
+        .run_mobile_plugin_async::<serde_json::Value>(command, serde_json::json!({}))
+        .await
+        .map_err(|e| e.to_string())
+}
+
 /// Send the app to the background, as Android's Back does on the first page (the page handles
 /// Back itself on Android, see `onBackButtonPress` in +layout.svelte).
 #[tauri::command]

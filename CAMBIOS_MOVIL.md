@@ -234,3 +234,16 @@ Detalle y estado de cada tarea en `TAREAS_MOVIL.md`. Resumen de lo aplicado:
 - [x] Animación al cambiar de canción: en la barra del reproductor, la portada y el título nuevos entran
   deslizándose 24 px (200 ms) desde el lado del gesto, o desde la derecha si cambia sola o con los
   botones. Medido en el Xiaomi con `getAnimations()`. Se desactiva con la opción de reducir animaciones.
+
+## Sesión, reproductor y textos (06/11/2026)
+
+- [x] **Renovación de la sesión de Google en Android:** cuando YouTube rechaza la sesión, un WebView nativo
+  que nunca se muestra (`GoogleSessionRefresher.kt`) carga music.youtube.com con las cookies del inicio
+  de sesión y Rust recoge las renovadas, con la misma comprobación de cuenta que escritorio. Antes, en
+  Android, una sesión caducada obligaba a iniciar sesión de nuevo. No se puede provocar un 401 en una
+  prueba sin estropear la sesión; la app arranca sin errores.
+- [x] Reproductor ampliado: la portada ocupa el 60 % del alto (antes la mitad); la cola sigue debajo.
+- [x] Textos pequeños en móvil: insignia «Experimental» a 11 px y subtítulos de tarjetas pequeñas a 12 px.
+- [x] Riesgo del descifrado: confirmado en el código que, si fallan los clientes directos, el orquestador
+  recurre a rustypipe (descifrado propio con QuickJS, compila para Android).
+- [ ] Sin probar: Teatro con vídeo (sonaba música local, sin vídeo).

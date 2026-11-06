@@ -373,7 +373,7 @@
 	<div
 		class="flex min-h-0 flex-col {big
 			? 'flex-1'
-			: `w-full md:w-[22rem] xl:w-[26rem] max-md:flex-1 ${stage ? 'border-l border-foreground/10 bg-background/55' : ''}`} {stage
+			: `w-full md:w-[22rem] xl:w-[26rem] max-md:flex-[2_1_0%] ${stage ? 'border-l border-foreground/10 bg-background/55' : ''}`} {stage
 			? 'relative z-0'
 			: ''}"
 		data-np-keep
@@ -514,8 +514,9 @@
 		     is the whole view. `relative z-0` is a stacking context of its own, so the glow behind
 		     the picture (-z-10) stays above the room instead of sinking under it. -->
 		{#if !big}
+			<!-- 3:2 with the tabs on a phone: an even split left the cover a third of the width. -->
 			<section
-				class="relative z-0 min-w-0 flex-1 flex-col px-6 pt-4 pb-6 lg:px-10 flex"
+				class="relative z-0 min-w-0 flex-1 flex-col px-6 pt-4 pb-6 lg:px-10 flex max-md:flex-[3_1_0%] max-md:pb-2"
 			>
 				<!-- The way out on the left, the Song/Video switch in the middle. -->
 				<div class="grid h-10 shrink-0 grid-cols-[1fr_auto_1fr] items-center">

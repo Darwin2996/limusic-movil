@@ -130,6 +130,24 @@ class PlayerPlugin(private val activity: Activity) : Plugin(activity) {
     invoke.resolveObject(mapOf("cookie" to cookie))
   }
 
+  /** The off-screen session refresh (`GoogleSessionRefresher`): load music.youtube.com, read the
+   * jar as it rotates, and drop the WebView. Driven by `refresh_session` in session.rs. */
+  @Command
+  fun openGoogleRefresh(invoke: Invoke) {
+    GoogleSessionRefresher.open(activity) { loaded -> invoke.resolveObject(mapOf("loaded" to loaded)) }
+  }
+
+  @Command
+  fun readGoogleCookies(invoke: Invoke) {
+    invoke.resolveObject(mapOf("cookie" to GoogleSessionRefresher.cookies()))
+  }
+
+  @Command
+  fun closeGoogleRefresh(invoke: Invoke) {
+    GoogleSessionRefresher.close(activity)
+    invoke.resolve()
+  }
+
   /** Back on the first page: leave the app the way Android's own Back does, to the background,
    * rather than finishing the activity. The page handles Back itself (`onBackButtonPress`), so
    * Tauri no longer does this. */

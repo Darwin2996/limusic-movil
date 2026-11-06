@@ -216,10 +216,11 @@ pub async fn refresh_session(app: AppHandle, state: Arc<AppState>) {
     }
 
     // The hidden refresh webview below cannot be hidden on Android: wry gives the activity a
-    // single WebView, so building it replaces the app's UI with music.youtube.com.
+    // single WebView, so building it replaces the app's UI with music.youtube.com. The plugin keeps
+    // one off screen instead.
     #[cfg(target_os = "android")]
     {
-        let _ = app;
+        refresh_session_android(&app, &state).await;
         return;
     }
 
@@ -441,6 +442,40 @@ mod tests {
         assert!(same_jar("SAPISID=a; SID=b", "SID=b; SAPISID=a"));
         assert!(!same_jar("SAPISID=a; __Secure-3PSIDTS=new", "SAPISID=a; __Secure-3PSIDTS=old"));
     }
+}
+
+/// [`refresh_session`] on Android: the same re-mint from the login jar, the same account check and
+/// the same wait for a jar that actually rotated, through the plugin's off-screen WebView.
+#[cfg(target_os = "android")]
+async fn refresh_session_android(app: &AppHandle, state: &AppState) {
+    let loaded = crate::android_google_refresh(app, "openGoogleRefresh")
+        .await
+        .ok()
+        .and_then(|v| v.get("loaded").and_then(serde_json::Value::as_bool));
+    if loaded != Some(true) {
+        tracing::debug!("session refresh: the off-screen webview never reached music.youtube.com");
+    } else {
+        for _ in 0..8 {
+            let current = state.it.cookie().unwrap_or_default();
+            let Some(account) = innertube::cookie_sapisid(&current) else { break };
+            let cookie = crate::android_google_refresh(app, "readGoogleCookies")
+                .await
+                .ok()
+                .and_then(|v| {
+                    v.get("cookie").and_then(serde_json::Value::as_str).map(str::to_owned)
+                })
+                .unwrap_or_default();
+            if innertube::cookie_sapisid(&cookie) == Some(account) && !same_jar(&cookie, &current) {
+                match state.sign_in(cookie, Some(account)).await {
+                    Ok(_) => tracing::info!("re-minted the login session from the cookie jar"),
+                    Err(error) => tracing::warn!(%error, "could not re-mint the login session"),
+                }
+                break;
+            }
+            tokio::time::sleep(Duration::from_millis(500)).await;
+        }
+    }
+    let _ = crate::android_google_refresh(app, "closeGoogleRefresh").await;
 }
 
 fn close_login(app: &AppHandle) {
