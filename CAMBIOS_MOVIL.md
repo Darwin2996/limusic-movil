@@ -102,7 +102,7 @@ durante esta revisión y distingue el código implementado de lo que falta valid
 
 Validación realizada: `pnpm run check` (sin errores ni avisos) y compilación del frontend de producción,
 compilación Rust para `aarch64-linux-android`,
-compilación de APK de depuración e instalación/arranque por ADB en un Xiaomi 2311DRK48G con Android
+compilación de APK de depuración e instalación/arranque por ADB en un Xiaomi con Android
 16. La APK de producción con aceleración gráfica normal y recuperación de superficie al primer
 cuadro/carga de canción se compiló e instaló en el teléfono. Se capturó el estado en negro y se tocó
 Reproducir: la interfaz se recuperó de inmediato; tres cargas seguidas conservaron la UI y el progreso
