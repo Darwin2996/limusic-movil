@@ -355,6 +355,24 @@ impl CipherDeobfuscator {
             return Ok(());
         }
 
+        // Android: wry gives the activity a single WebView, and `.visible(false)` is a no-op there,
+        // so building the cipher webview replaces the app's UI with the blank harness (and routes
+        // the app's evals to it). Treat the player as undecipherable instead: the orchestrator
+        // falls through to the direct-URL clients, exactly as for an unknown player above.
+        #[cfg(target_os = "android")]
+        {
+            let mut inner = self.inner.lock().await;
+            inner.sts = sts;
+            inner.built_epoch = epoch;
+            inner.n_available = false;
+            inner.sig_available = false;
+            inner.analyzed = true;
+            inner.discovered = true;
+            inner.unknown_player_at = None;
+            tracing::info!(hash = player.hash, ?sts, "cipher: no webview on Android, skipping");
+            return Ok(());
+        }
+
         tracing::info!(hash = player.hash, ?sts, "cipher: building webview");
         let injected = extractor::build_injection(&player.js, cfg.as_ref());
 

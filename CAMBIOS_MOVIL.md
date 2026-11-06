@@ -147,3 +147,24 @@ generados; `Cargo.lock` se restauró al terminar y no se cambiaron las dependenc
 - [ ] Validar que YouTube Music/InnerTube acepta el token Bearer para `account_menu`, biblioteca y reproducción. La compilación no demuestra por sí sola compatibilidad del backend con todas las operaciones autenticadas.
 - [x] El primer empaquetado manual abrió `localhost:5183` y mostró una pantalla vacía porque no llevaba la feature `custom-protocol`; se regeneró la biblioteca con `tauri/custom-protocol`, se reinstaló el APK y se verificó el Inicio.
 - [ ] La compilación automatizada de Gradle no pudo llamar a `node tauri android android-studio-script` porque el checkout no contiene ese ejecutable. Se generó la biblioteca con Cargo y se empaquetó excluyendo esa tarea; durante la comprobación se usaron copias temporales de tres plugins Tauri bajo `.codex-tmp` para evitar escribir en el caché de Cargo. `Cargo.lock` se restauró sin conservar parches ni cambios de dependencia.
+
+## Pantalla en blanco al reproducir — causa raíz
+
+- [x] **Causa real encontrada:** en Android, wry (el motor de WebView de Tauri) solo admite un WebView por
+  actividad. Al reproducir una canción que necesitaba descifrar su URL, el backend creaba el WebView
+  "oculto" de descifrado (`limusic-cipher`); en Android `visible(false)` no tiene efecto y wry llama a
+  `setContentView` con el nuevo WebView, que sustituía a la interfaz por una página vacía en blanco y
+  además recibía los mensajes de Rust destinados a la app. La música seguía sonando, pero no se podía
+  tocar nada. Lo mismo ocurría al escuchar en conjunto, porque las canciones del anfitrión pasan por el
+  mismo descifrado. Comprobado con DevTools: había dos páginas y la visible era `limusicharness.localhost`.
+- [x] En Android ya no se crea el WebView de descifrado (`src-tauri/src/cipher/mod.rs`): el reproductor se
+  trata como no descifrable y el orquestador pasa a los clientes directos (p. ej. VISIONOS, mismo itag 251).
+- [x] El refresco de sesión por cookies tampoco crea su WebView oculto en Android (`src-tauri/src/session.rs`).
+- [x] Retirado el parche que separaba y volvía a adjuntar el WebView en cada carga de canción
+  (`PlayerPlugin.kt`), que causaba el parpadeo al elegir canción.
+- [x] Verificado en el Xiaomi: la reproducción de un álbum que antes dejaba la pantalla en blanco mantiene
+  la interfaz visible, cuatro saltos de canción seguidos y la navegación responden, y DevTools muestra un
+  único WebView.
+- [ ] Probar «Escuchar juntos» con otra persona en el teléfono.
+- [ ] Mejora futura: descifrar en Android sin WebView (p. ej. con QuickJS, que ya está en el árbol de
+  dependencias) para recuperar los clientes que lo necesitan.

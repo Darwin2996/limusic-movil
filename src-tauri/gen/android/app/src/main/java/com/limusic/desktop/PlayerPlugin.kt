@@ -74,9 +74,6 @@ class PlayerPlugin(private val activity: Activity) : Plugin(activity) {
     controllerFuture.addListener({
       try {
         executeOnPlayer(controllerFuture.get(), args)
-        if (args.action == "load") {
-          (activity as? MainActivity)?.recoverWebViewSurface()
-        }
         invoke.resolve()
       } catch (error: Exception) {
         invoke.reject("Android playback command failed: ${error.message}")

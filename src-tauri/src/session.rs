@@ -278,6 +278,9 @@ pub async fn refresh_session(app: AppHandle, state: Arc<AppState>) {
             }
             return;
         }
+        // The hidden refresh webview below cannot be hidden on Android: wry gives the activity a
+        // single WebView, so building it replaces the app's UI with music.youtube.com.
+        return;
     }
 
     let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<()>();
