@@ -1,0 +1,149 @@
+# Cambios de adaptación móvil
+
+Registro acumulativo de correcciones para la aplicación Android y el uso en pantallas táctiles.
+El repositorio recibido no incluye metadatos de Git; este archivo registra los cambios aplicados
+durante esta revisión y distingue el código implementado de lo que falta validar en un teléfono.
+
+## Implementado en esta revisión
+
+- [x] Añadido un menú móvil **Más** con acceso a cuenta/perfiles, Historial, abrir enlace,
+  Escuchar juntos, Teatro, Discord, ajustes de Last.fm y Configuración. La barra inferior conserva
+  Inicio, Buscar, Biblioteca y Estadísticas; las listas están dentro de Biblioteca.
+- [x] Añadidos accesos móviles directos a reproductor ampliado, cola, letras y comentarios (estos
+  últimos solo cuando la canción no es un archivo local).
+- [x] Cambiadas las pestañas horizontales de Configuración por un selector móvil que muestra todas
+  las secciones sin exigir deslizar una tira fuera de pantalla.
+- [x] Vuelto a mostrar los tiempos de reproducción en móvil. A petición del usuario, se retiró el
+  deslizador de volumen del reproductor y Android inicia con la ganancia de LiMusic al 100 %; el
+  volumen general se ajusta con las teclas del teléfono.
+- [x] Separadas las acciones flotantes de selección múltiple, sugerencias y avisos de las barras
+  inferiores del teléfono, con márgenes para el área segura de Android.
+- [x] Añadidos botones para subir y bajar elementos en la cola, en el orden de fuentes de letras y
+  en el orden de secciones de Inicio; el arrastre y los atajos existentes siguen disponibles.
+- [x] Adaptado el modo Teatro en móvil: ahora aparecen controles de letras y cola en la cabecera,
+  aunque el diseño de escritorio oculte la barra superior. Letras y cola se muestran como paneles
+  superpuestos de altura limitada por encima del dock, sin comprimir la portada. En el teléfono se
+  verificó cambiar entre ambas vistas y desplazar táctilmente la cola.
+- [x] Añadida selección de día y hora en Estadísticas para consultar el tiempo exacto sin depender
+  de tooltips al pasar el puntero.
+- [x] Ajustados en móvil tamaños de toque y visibilidad de acciones de tarjetas, listas recientes,
+  accesos directos y carruseles que antes dependían de hover.
+- [x] Mostrado el recuento de reproducciones bajo el artista en las filas móviles que antes lo
+  ocultaban.
+- [x] Reducidos márgenes y algunos tamaños de portada/título en páginas de artista, álbum y
+  playlist; reorganizados los botones y filtros de sus cabeceras para anchos pequeños.
+- [x] Reorganizados los campos de edición de playlists en vertical en móvil.
+- [x] Añadidos límites de altura y desplazamiento táctil a los diálogos generales y de importación;
+  reforzado el desplazamiento vertical de Configuración.
+- [x] En Android, **Añadir carpeta** usa el selector SAF del sistema. Los archivos de audio
+  compatibles se copian a almacenamiento privado de LiMusic para que el escáner Rust y el
+  reproductor puedan leerlos. Se informa que la importación ocupa espacio; se muestra actividad
+  durante la selección/copia y se presentan errores comprensibles. Al quitar la carpeta de la
+  biblioteca, también se elimina la copia importada. Se corrigió la consulta del nombre de la
+  carpeta: Android entrega un URI de árbol y la consulta de metadatos debe hacerse sobre su
+  documento raíz.
+- [x] El reproductor Android admite fuentes HTTP y archivos locales. Se añadió la fuente de datos
+  predeterminada de Media3 alrededor de HTTP para enrutar rutas locales a `FileDataSource`.
+- [x] En Android, reproducir una canción ya no abre automáticamente el reproductor ampliado:
+  WebView puede anunciar un ancho CSS de escritorio aunque el dispositivo sea un teléfono. También
+  se apilaron en vertical los datos de canción y sus acciones para que el título no se comprima en
+  una columna estrecha al abrir manualmente el reproductor. En el teléfono se probó iniciar una
+  canción desde Inicio y abrir el reproductor ampliado manualmente; la interfaz permaneció visible,
+  el reproductor avanzó y el título/artista/álbum se dispusieron en vertical.
+- [x] Se descartó el renderizado por software porque hacía la app lenta. Con aceleración gráfica
+  normal, Android reconstruye la superficie al confirmar el primer cuadro visual y al cargar una
+  canción: se separa y vuelve a adjuntar el mismo WebView, sin recargar la página ni reiniciar el
+  proceso. También se pide un repintado al recuperar el foco.
+- [x] **Pantalla en blanco intermitente:** se reprodujo una pantalla negra con la página viva en el
+  DOM. Al tocar Reproducir, volver a adjuntar el WebView restauró la interfaz inmediatamente y la
+  música siguió avanzando. También quedó visible desde el primer cuadro de un arranque en frío; se
+  probaron tres cargas seguidas sin regresión de rendimiento en el teléfono conectado.
+- [x] En el reproductor ampliado, los nombres largos de artistas y álbumes pueden ocupar varias
+  líneas en vertical en lugar de cortarse al final.
+- [x] En música local, los botones de añadir/volver a escanear se reorganizan para móvil y el botón
+  de quitar carpeta tiene un área táctil mayor.
+- [x] En el menú móvil **Más**, la fila de cuenta ahora incluye una etiqueta visible (“Cuenta”),
+  para que el icono de inicio de sesión/cambio de perfil no sea la única pista de su función.
+- [x] Comprobado en el teléfono el diálogo **Abrir enlace** con el teclado Android abierto: el
+  campo y el botón “Abrir” permanecen visibles por encima del teclado.
+- [x] Unificada la petición de volumen fijo en Android: la ganancia interna se fuerza al 100 % al
+  iniciar y al recibir eventos, los gestos/atajos de volumen no la alteran y el modo Teatro ya no
+  muestra el deslizador ni el botón de silencio. El volumen se regula con los botones físicos del
+  dispositivo.
+- [x] Android registra el proveedor criptográfico de Rustls antes de inicializar servicios y
+  clientes HTTPS, evitando que la app se cierre al arrancar en una compilación limpia.
+- [x] Ocultada en Android la pestaña de atajos globales: el backend informa que no son compatibles,
+  por lo que ofrecer su activación permitía configurar una función que no podía operar. Confirmado
+  en el selector de secciones de Configuración del teléfono.
+- [x] Comprobado en el teléfono que Apariencia se desplaza verticalmente y que el selector táctil
+  de color ofrece paleta de tono y campo hexadecimal; no requiere el cuentagotas del navegador.
+
+## Pendiente de resolución o comprobación
+
+- [ ] **Comprobar en Ajustes gestos y pestañas con otras configuraciones:** en esta sesión se
+  confirmó que el panel general y Apariencia sí desplazan verticalmente en el teléfono; faltan las
+  secciones Discord y Last.fm.
+- [ ] **Ampliar pruebas de música local:** se importó una carpeta de Android con un MP3, apareció
+  indexado y se reprodujo correctamente. Falta verificar subcarpetas, varios formatos, bibliotecas
+  grandes y errores de lectura.
+- [ ] **Verificar en el teléfono** importación Spotify, barras flotantes, Teatro con vídeo, textos
+  largos y tamaños de fuente grandes. Ya se comprobó el selector de letras/cola y el desplazamiento
+  táctil de la cola, además de que el diálogo Abrir enlace conserva visibles su campo y botón con
+  el teclado Android abierto.
+- [ ] El minirreproductor de ventana de escritorio no es una ventana flotante Android; el menú
+  móvil da acceso al reproductor ampliado y la barra compacta persistente. No se ha implementado
+  Picture-in-Picture del sistema.
+- [ ] Los chips de Inicio y Buscar conservan el desplazamiento horizontal; revisar en pantalla si
+  necesitan una señal visual adicional.
+- [ ] Verificar el selector de carpeta y lectura de formatos distintos de MP3 en más dispositivos
+  Android/proveedores SAF.
+
+## Límites de validación
+
+Validación realizada: `pnpm run check` (sin errores ni avisos) y compilación del frontend de producción,
+compilación Rust para `aarch64-linux-android`,
+compilación de APK de depuración e instalación/arranque por ADB en un Xiaomi 2311DRK48G con Android
+16. La APK de producción con aceleración gráfica normal y recuperación de superficie al primer
+cuadro/carga de canción se compiló e instaló en el teléfono. Se capturó el estado en negro y se tocó
+Reproducir: la interfaz se recuperó de inmediato; tres cargas seguidas conservaron la UI y el progreso
+avanzó. En un arranque en frío la interfaz también quedó visible antes de tocarla. La última APK
+instalada incluye la etiqueta de Cuenta, el ajuste tipográfico de nombres largos, el volumen fijo sin
+slider, el selector móvil de letras/cola de Teatro y la retirada de la pestaña de atajos globales
+incompatibles; arrancó, el progreso avanzó con Teatro abierto y se desplazó la cola táctilmente. La
+compilación limpia mostró una falta de proveedor Rustls en Android, que se corrigió inicializándolo
+al arranque. Antes de estos últimos cambios se seleccionó una
+carpeta SAF de prueba y se comprobó la copia de un MP3 a
+almacenamiento privado, su indexación en la biblioteca y su reproducción: el contador avanzó de
+0:00 a 0:05 sin errores recientes de Media3. Se eliminó del teléfono la copia privada y también la
+carpeta temporal de prueba. Se verificaron Ajustes desplazándose verticalmente, el menú Más y su
+fila Last.fm, además de las vistas móviles mencionadas arriba. La importación local usa
+almacenamiento privado: los archivos no son accesibles desde otras aplicaciones y ocupan espacio
+hasta quitar la carpeta desde LiMusic. La reproducción en línea y el resto de pruebas pendientes
+siguen sin confirmarse. Para esta compilación se usaron copias temporales dentro de `.codex-tmp` de
+tres plugins Tauri, porque los scripts Android de la caché de Cargo no permiten escribir sus archivos
+generados; `Cargo.lock` se restauró al terminar y no se cambiaron las dependencias del proyecto.
+
+- [x] Sustituido el selector nativo de apartados de Ajustes en móvil por un desplegable propio con iconos, título y descripción; el apartado activo queda destacado y las opciones usan los colores de la apariencia seleccionada. El menú admite desplazamiento y controles táctiles amplios. Verificados `pnpm run check` (sin errores ni avisos) y `pnpm run build`. APK compilada, instalada como actualización conservando los datos y comprobada en el teléfono: el menú abre, resalta la sección activa y al seleccionar Apariencia actualiza el título y el icono.
+
+## Cambios de esta revisión — Ajustes y acceso móvil
+
+- [x] Discord: en móvil la vista previa de Rich Presence queda plegada inicialmente para dar espacio a los controles. Se puede abrir desde «Previsualización»; en pantallas grandes la vista previa lateral se mantiene. Los controles ajustan su disposición y el panel conserva su desplazamiento.
+- [x] Scrobbleo: la vista previa también queda plegada inicialmente en móvil. Se reorganizaron las filas para que etiquetas, selectores y controles no se compriman en paralelo en pantallas estrechas; se mantiene la vista previa de escritorio.
+- [x] Teatro: en vertical, al abrir letra o cola, su contenido ocupa un panel dentro del flujo de la página debajo de la portada e información de la canción. Ya no se superpone sobre la canción; la portada reduce su tamaño para compartir la pantalla.
+- [x] Música local: la pestaña aparece junto a «Todo». Cuando aún no hay carpetas, se explica qué hacer y se muestra el botón «Añadir carpeta de música» de forma destacada; al haber carpetas, se conserva el control de añadir en el encabezado.
+- [x] Verificado `pnpm run check` (0 errores, 0 avisos), `pnpm run build`, compilación e instalación de la APK actualizada. En el teléfono se revisaron Discord, Scrobbleo, la pestaña y el estado vacío de Música local, así como Teatro con la cola y con la letra abierta.
+- [ ] Inicio de sesión de Google: sigue pendiente. El flujo actual inicia sesión en un WebView incrustado y Google bloquea algunos navegadores embebidos. Abrir el navegador externo por sí solo no entrega a LiMusic las cookies de YouTube Music que usa su sesión actual; requiere un flujo de autenticación compatible y adaptar el intercambio de sesión. No se simuló una redirección como si resolviera el inicio de sesión.
+- [ ] Aviso de Android 16: la captura menciona técnicas de refuerzo incompatibles, pero no se reprodujo durante esta revisión. El APK comprobado declara `targetSdk 36`, contiene solo `libapp_lib.so` para arm64, tiene sus segmentos ELF con alineación `0x4000` (16 KB) y pasa `zipalign -c -P 16 -v 4`. El manifiesto compilado no declara `android.app.16kb_pages_enabled`. Los registros recientes no muestran una excepción de notificaciones/seguridad de LiMusic. Esto descarta el desajuste habitual de páginas de 16 KB en el APK comprobado, pero no identifica el origen del aviso original; no se modificó el manifiesto a ciegas.
+
+## Inicio de sesión Google — flujo OAuth Android
+
+- [x] Se sustituyó para Android la apertura del formulario de Google dentro del WebView de LiMusic por la pantalla de autorización nativa de Google Play Services. Las credenciales se gestionan en la interfaz de Google/Android y no se introducen en el WebView de LiMusic.
+- [x] Se añadieron las autorizaciones de YouTube y del perfil/correo, el callback de autorización, la selección de cuenta al añadir otra y la obtención del correo verificado para conservar la separación de cuentas de LiMusic.
+- [x] Se adaptó el transporte InnerTube y la descarga de subidas privadas para enviar el token OAuth como `Authorization: Bearer`; las sesiones de escritorio basadas en cookies mantienen su transporte anterior. La renovación Android solicita a Play Services una autorización actualizada para la misma cuenta.
+- [x] Compiló el plugin Kotlin Android (`:app:compileArm64DebugKotlin`) y pasó `cargo check` y `cargo build` Rust para `aarch64-linux-android`. El APK arm64 debug se empaquetó correctamente.
+- [x] APK arm64 debug corregido e instalado por ADB sobre la app existente, conservando los datos. Se verificó en el Xiaomi que la pantalla de Inicio carga desde los recursos incluidos y que no aparece el error de `localhost`; no se aceptó ni se introdujo ninguna credencial o consentimiento de usuario.
+- [ ] Falta validar la autorización real con una cuenta Google en el teléfono. El paso final requiere que tú elijas tu cuenta y aceptes el consentimiento de Google.
+- [ ] Confirmar en Google Cloud que el proyecto OAuth está en modo de pruebas/publicación correcto y que la cuenta usada está añadida como usuario de prueba si la aplicación sigue en pruebas. El cliente Android se vincula por nombre de paquete y SHA-1 de firma; Play Services resuelve el cliente a partir de la app instalada.
+- [ ] Validar que YouTube Music/InnerTube acepta el token Bearer para `account_menu`, biblioteca y reproducción. La compilación no demuestra por sí sola compatibilidad del backend con todas las operaciones autenticadas.
+- [x] El primer empaquetado manual abrió `localhost:5183` y mostró una pantalla vacía porque no llevaba la feature `custom-protocol`; se regeneró la biblioteca con `tauri/custom-protocol`, se reinstaló el APK y se verificó el Inicio.
+- [ ] La compilación automatizada de Gradle no pudo llamar a `node tauri android android-studio-script` porque el checkout no contiene ese ejecutable. Se generó la biblioteca con Cargo y se empaquetó excluyendo esa tarea; durante la comprobación se usaron copias temporales de tres plugins Tauri bajo `.codex-tmp` para evitar escribir en el caché de Cargo. `Cargo.lock` se restauró sin conservar parches ni cambios de dependencia.
