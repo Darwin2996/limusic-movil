@@ -36,6 +36,7 @@
 	import { availableColumns, tableColumns } from '$lib/trackcolumns';
 	import TrackSelectionBar from '$lib/components/TrackSelectionBar.svelte';
 	import TrackSelectButton from '$lib/components/TrackSelectButton.svelte';
+	import DownloadAllButton from '$lib/components/DownloadAllButton.svelte';
 	import { trackSelection } from '$lib/selection.svelte';
 	import { subtitleCount, withSubtitleCount } from '$lib/trackcount';
 	import EditPlaylistDialog from '$lib/components/EditPlaylistDialog.svelte';
@@ -1180,6 +1181,10 @@
 							<TrackSelectButton
 								{selection}
 								class="-ml-2 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition hover:bg-muted hover:text-foreground"
+							/>
+							<DownloadAllButton
+								songs={pl.items}
+								class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full transition hover:bg-muted hover:text-foreground"
 							/>
 						</div>
 						<!-- Pushed to the far end of the header, away from the play controls. -->

@@ -151,8 +151,8 @@ Estado: `[ ]` pendiente · `[~]` en curso · `[x]` hecho · `[?]` necesita una d
 - [x] **Volver a pulsar la pestaña activa** de la barra inferior sube al principio de la página.
 - [x] **Conservar la posición de desplazamiento** al volver atrás a una lista o página.
   → Ya existía en la app (`snapshot` en +layout.svelte); falta comprobarlo en el teléfono.
-- [ ] **Deslizar hacia abajo para recargar** en Inicio y Biblioteca.
-  → Sin hacer: las páginas cargan sus datos cada una a su manera (no con `load` de SvelteKit), así que requiere tocar cada página. Pendiente de decidir si merece la pena.
+- [x] **Deslizar hacia abajo para recargar** en Inicio y Biblioteca.
+  → Hecho en Inicio y Biblioteca: reutiliza la recarga del botón de escritorio (`refreshView`), que vacía la caché y vuelve a montar la página.
 - [x] **Calidad distinta en Wi-Fi y en datos móviles:** hoy hay un único ajuste de calidad.
   → Hecho: ajuste «Calidad con datos móviles» en Configuración ▸ Reproducción; la app detecta Wi-Fi o datos con la API de red del navegador.
 - [x] **Ahorro de batería de MIUI/Android:** la app no está excluida, y Xiaomi suele cerrar apps en segundo
@@ -168,12 +168,15 @@ Estado: `[ ]` pendiente · `[~]` en curso · `[x]` hecho · `[?]` necesita una d
 
 - [ ] **Abrir enlaces compartidos:** que LiMusic aparezca al pulsar «Compartir» en un enlace de YouTube o
   YouTube Music desde otra app, y lo reproduzca.
-- [ ] **Temporizador de apagado:** parar la música tras X minutos o al acabar la canción.
+- [x] **Temporizador de apagado:** parar la música tras X minutos o al acabar la canción.
+  → Hecho: botón de luna en el reproductor ampliado; la cuenta atrás va en Rust (`sleep.rs`) para que funcione con la pantalla apagada.
 - [ ] **Me gusta desde la notificación** y la pantalla de bloqueo.
-- [ ] **Descargas sin conexión** de canciones o playlists.
+- [x] **Descargas sin conexión** de canciones o playlists.
+  → Hecho: «Descargar» en el menú de canción, botón en álbum y playlist, pestaña Biblioteca ▸ Descargas; se reproducen desde el archivo (`downloads.rs`).
 - [ ] **Widget** de pantalla de inicio con la canción actual y los controles.
 - [ ] **Android Auto.**
-- [ ] **Avisar de versiones nuevas de la APK** (por ejemplo, desde las releases de GitHub).
+- [x] **Avisar de versiones nuevas de la APK** (por ejemplo, desde las releases de GitHub).
+  → Hecho: consulta las releases de `Darwin2996/limusic-movil`, descarga la APK y abre el instalador de Android. Se publica con `scripts/android-release.ps1`.
 
 ## Ya comprobado y correcto
 

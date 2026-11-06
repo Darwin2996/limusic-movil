@@ -7,6 +7,7 @@ mod cipher;
 mod commands;
 mod db;
 mod diagnostics;
+mod downloads;
 mod discord;
 #[cfg(not(target_os = "android"))]
 mod hotkeys;
@@ -39,6 +40,7 @@ mod orchestrator;
 mod potoken;
 mod romanize;
 mod session;
+mod sleep;
 mod spotify;
 mod state;
 mod stats;
@@ -159,6 +161,29 @@ async fn android_move_to_background(app: tauri::AppHandle) -> Result<(), String>
     {
         let _ = app;
         Ok(())
+    }
+}
+
+/// Download a release APK and open Android's installer (the in-app update, `lib/apkupdate.ts`).
+/// Errs with `INSTALL_PERMISSION` when installs from the app still have to be allowed.
+#[tauri::command]
+async fn install_apk_update(app: tauri::AppHandle, url: String) -> Result<(), String> {
+    #[cfg(target_os = "android")]
+    {
+        // Only GitHub release assets: the URL comes from the API answer, never from a page.
+        if !url.starts_with("https://github.com/") {
+            return Err("Not a GitHub release asset".into());
+        }
+        let plugin = app.state::<AndroidPlayerPluginHandle>().0.clone();
+        return plugin
+            .run_mobile_plugin_async::<()>("installApkUpdate", serde_json::json!({ "url": url }))
+            .await
+            .map_err(|e| e.to_string());
+    }
+    #[cfg(not(target_os = "android"))]
+    {
+        let _ = (app, url);
+        Err("In-app updates are Android only".into())
     }
 }
 
@@ -1313,6 +1338,7 @@ pub fn run() {
             pick_android_local_folder,
             delete_android_local_folder,
             android_move_to_background,
+            install_apk_update,
             android_battery_exempt,
             request_android_battery_exemption,
             commands::search,
@@ -1356,6 +1382,11 @@ pub fn run() {
             commands::get_stream_clients,
             commands::clear_caches,
             commands::set_metered,
+            commands::set_sleep_timer,
+            commands::get_sleep_timer,
+            commands::download_song,
+            commands::remove_download,
+            commands::list_downloads,
             commands::set_app_icon,
             commands::app_icon_path,
             commands::get_account,

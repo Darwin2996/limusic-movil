@@ -542,7 +542,7 @@
 		onclick={() => scroller?.scrollTo({ top: 0, behavior: 'smooth' })}
 		aria-label={t('a11y.back_to_top')}
 		class="fixed right-6 z-10 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110 {playback.now
-			? 'bottom-24 max-md:bottom-[calc(16rem_+_env(safe-area-inset-bottom))]'
+			? 'bottom-24 max-md:bottom-[calc(12rem_+_env(safe-area-inset-bottom))]'
 			: 'bottom-6 max-md:bottom-[calc(5rem_+_env(safe-area-inset-bottom))]'}"
 	>
 		<HugeiconsIcon icon={ArrowUpBigIcon} class="h-5 w-5" />

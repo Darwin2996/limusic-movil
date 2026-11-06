@@ -247,3 +247,20 @@ Detalle y estado de cada tarea en `TAREAS_MOVIL.md`. Resumen de lo aplicado:
 - [x] Riesgo del descifrado: confirmado en el código que, si fallan los clientes directos, el orquestador
   recurre a rustypipe (descifrado propio con QuickJS, compila para Android).
 - [ ] Sin probar: Teatro con vídeo (sonaba música local, sin vídeo).
+
+## Funciones nuevas y publicación (06/11/2026)
+
+- [x] **Temporizador de apagado** (luna en el reproductor ampliado): 15–60 min o al acabar la canción. La
+  cuenta atrás va en Rust (`sleep.rs`), así que funciona con la pantalla apagada.
+- [x] **Deslizar para recargar** en Inicio y Biblioteca.
+- [x] **Descargas sin conexión:** menú de canción, botón en álbum y playlist y Biblioteca ▸ Descargas. Los
+  archivos van en `downloads/` de los datos de la app y `AppState::resolve` los reproduce antes de ir a
+  la red (`downloads.rs`).
+- [x] **Actualizaciones desde la app:** el aviso consulta las releases públicas de
+  `Darwin2996/limusic-movil`, descarga la APK y abre el instalador de Android (siempre pide confirmar).
+  Las versiones se publican con `scripts/android-release.ps1 -Version X.Y.Z`, que tiene que ejecutarse
+  en este ordenador: la APK se firma con su clave de depuración y Android solo acepta actualizaciones
+  firmadas con la misma clave.
+- [x] Avisos flotantes ajustados a la barra del reproductor de una fila.
+- [ ] Sin probar en el teléfono (el móvil no estaba conectado): temporizador, deslizar para recargar,
+  descargas e instalación de actualizaciones.

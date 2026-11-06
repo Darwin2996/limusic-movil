@@ -25,8 +25,11 @@
 		DashboardSquare02Icon,
 		Share08Icon,
 		PreferenceVerticalIcon,
-		PencilEdit02Icon
+		PencilEdit02Icon,
+		Download04Icon,
+		Delete02Icon
 	} from '@hugeicons/core-free-icons';
+	import { downloads, download, removeDownload } from '$lib/downloads.svelte';
 	import * as api from '$lib/api';
 	import type { SongItem } from '$lib/api';
 	import { anchorMenu, ctxHost, fitMenu, NO_ANCHOR, toBody } from '$lib/menu';
@@ -37,6 +40,7 @@
 		bumpLibraryTrackCount,
 		enqueue,
 		inSongLibrary,
+		isAndroid,
 		songLibraryToken,
 		openShare,
 		notePlaylistRemove,
@@ -378,6 +382,28 @@
 			>
 				<HugeiconsIcon icon={Share08Icon} class="h-4 w-4" /> {t('player.share')}
 			</button>
+			<!-- Offline listening (Android): download, its progress while it runs, or remove it. -->
+			{#if isAndroid}
+				{@const pending = downloads.pending[song.video_id]}
+				<button
+					class="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent/10 disabled:opacity-60"
+					disabled={pending !== undefined}
+					onclick={(e) =>
+						run(e, () =>
+							downloads.has(song.video_id) ? removeDownload(song.video_id) : download([song])
+						)}
+				>
+					<HugeiconsIcon
+						icon={downloads.has(song.video_id) ? Delete02Icon : Download04Icon}
+						class="h-4 w-4"
+					/>
+					{pending !== undefined
+						? t('downloads.downloading', { percent: Math.round(pending * 100) })
+						: downloads.has(song.video_id)
+							? t('downloads.remove')
+							: t('downloads.download')}
+				</button>
+			{/if}
 		{/if}
 		<!-- #404: fix how this track scrobbles, for good. Opens the Scrobbling tab on it, where the
 		     preview shows what both services get before and after. Only for someone actually

@@ -7,7 +7,8 @@
 		CheckmarkCircle02Icon,
 		AlertCircleIcon,
 		InformationCircleIcon,
-		Cancel01Icon
+		Cancel01Icon,
+		Refresh01Icon
 	} from '@hugeicons/core-free-icons';
 	import { browser } from '$app/environment';
 	import { afterNavigate } from '$app/navigation';
@@ -56,8 +57,16 @@
 	import CommandPalette from '$lib/components/CommandPalette.svelte';
 	import KeyboardShortcuts from '$lib/components/KeyboardShortcuts.svelte';
 	import { Button } from '$lib/components/ui/button';
-	import { auth, initApp, isAndroid, np, playback, prefs, ui } from '$lib/player.svelte';
-	import { androidMoveToBackground, isLocalId, setMetered } from '$lib/api';
+	import { auth, initApp, isAndroid, np, playback, prefs, refreshView, toast, ui } from '$lib/player.svelte';
+	import {
+		androidMoveToBackground,
+		installApkUpdate,
+		isLocalId,
+		openExternal,
+		setMetered
+	} from '$lib/api';
+	import { checkApkUpdate, dismissApkUpdate, type ApkRelease } from '$lib/apkupdate';
+	import { initDownloads } from '$lib/downloads.svelte';
 	import { video } from '$lib/video.svelte';
 	import { initWin, windowCorners } from '$lib/win.svelte';
 	import { initZoom } from '$lib/zoom.svelte';
@@ -118,6 +127,59 @@
 
 	// Pages reached from another one, which a phone needs a visible way back from.
 	const hasBackBar = $derived(/^\/(artist|album|playlist|list|history)(\/|$)/.test(page.url.pathname));
+
+	// Pull to refresh on a phone's Home and Library: drag down from the very top past PULL_AT and
+	// let go. Passive throughout: the page's own scrolling is never held up for it.
+	// Android: a newer APK on the mobile port's releases, until downloaded or dismissed.
+	let apkUpdate = $state<ApkRelease | null>(null);
+	/** Download it and open Android's installer; without an APK on the release, its page. */
+	async function updateApk() {
+		const release = apkUpdate;
+		if (!release) return;
+		if (!release.apk) {
+			openExternal(release.url).catch(() => {});
+			apkUpdate = null;
+			return;
+		}
+		toast(t('apk_update.downloading'));
+		try {
+			await installApkUpdate(release.apk);
+			apkUpdate = null;
+		} catch (e) {
+			const error = String(e);
+			toast.error(
+				error.includes('INSTALL_PERMISSION')
+					? t('apk_update.allow_installs')
+					: t('apk_update.failed', { error })
+			);
+		}
+	}
+
+	const PULL_AT = 64;
+	let pull = $state(0);
+	let pullRefreshing = $state(false);
+	let pullFrom: number | null = null;
+	const pullable = $derived(
+		isAndroid && (page.url.pathname === '/' || page.url.pathname === '/library')
+	);
+	function pullStart(e: TouchEvent) {
+		pullFrom = pullable && scroller?.scrollTop === 0 ? e.touches[0].clientY : null;
+	}
+	function pullMove(e: TouchEvent) {
+		if (pullFrom === null) return;
+		const dy = e.touches[0].clientY - pullFrom;
+		// Half the finger's travel, so it reads as resistance; capped a little past the trigger.
+		pull = dy > 0 && scroller?.scrollTop === 0 ? Math.min(dy / 2, PULL_AT + 24) : 0;
+	}
+	function pullEnd() {
+		if (pull >= PULL_AT) {
+			pullRefreshing = true;
+			refreshView();
+			setTimeout(() => (pullRefreshing = false), 900);
+		}
+		pull = 0;
+		pullFrom = null;
+	}
 
 	/** Android's Back button (`onBackButtonPress` below): close whatever is on top, innermost first,
 	 *  and report whether anything was. Only `false` lets Back leave the page. */
@@ -210,9 +272,6 @@
 		}
 		// First: it reveals the window (see initWin).
 		const teardownWin = initWin();
-		// The updater only knows the desktop releases; an Android install would be told to download one.
-		// Listening is what stops Tauri's own handling, which went straight back a page even with a
-		// menu or a dialog open over it.
 		// Wi-Fi or mobile data, for Settings ▸ Playback ▸ Quality on mobile data. Without the Network
 		// Information API the phone reads as Wi-Fi, which leaves the ordinary quality in force.
 		const connection = isAndroid
@@ -223,6 +282,8 @@
 			reportNetwork();
 			connection.addEventListener('change', reportNetwork);
 		}
+		// Listening is what stops Tauri's own handling, which went straight back a page even with a
+		// menu or a dialog open over it.
 		const backListener = isAndroid
 			? onBackButtonPress(({ canGoBack }) => {
 					if (androidBack()) return;
@@ -230,17 +291,22 @@
 					else androidMoveToBackground().catch(() => {});
 				})
 			: null;
+		// The updater only knows the desktop releases; an Android install would be told to download
+		// one. Android asks the mobile port's own releases instead (lib/apkupdate.ts).
 		if (!isAndroid) checkForUpdatesQuiet();
+		else checkApkUpdate().then((r) => (apkUpdate = r));
 		// Repeat while the app stays open: ✕ hides to tray by default, so this component can stay
 		// mounted for days and a mount-only check would never see a release published in between.
 		const updateTimer = isAndroid ? undefined : setInterval(checkForUpdatesQuiet, QUIET_INTERVAL_MS);
 		const teardownApp = initApp();
+		const teardownDownloads = isAndroid ? initDownloads() : null;
 		const teardownZoom = initZoom();
 		const teardownShortcuts = initShortcuts();
 		initImport();
 		return () => {
 			clearInterval(updateTimer);
 			backListener?.then((l) => l.unregister());
+			teardownDownloads?.();
 			connection?.removeEventListener('change', reportNetwork);
 			teardownApp();
 			teardownWin();
@@ -306,17 +372,34 @@
 				class="min-w-0 flex-1 overflow-y-auto {video.hole ? 'invisible' : ''}"
 				bind:this={scroller}
 				{@attach dragScroll}
+				ontouchstart={pullStart}
+				ontouchmove={pullMove}
+				ontouchend={pullEnd}
+				ontouchcancel={() => (pull = 0)}
 			>
-				<!-- Remount the current page on sign-in/out so it refetches with the new account, and on
-				     a refresh (titlebar button / F5), which drops the browse cache first. -->
 				<!-- A phone has no titlebar, so its detail pages get their back arrow here. -->
 				{#if hasBackBar}
 					<div class="flex h-14 items-center px-2 md:hidden"><BackButton /></div>
 				{/if}
+				<!-- Remount the current page on sign-in/out so it refetches with the new account, and on
+				     a refresh (titlebar button / F5), which drops the browse cache first. -->
 				{#key `${auth.epoch}:${ui.epoch}`}
 					{@render children()}
 				{/key}
 			</main>
+			{#if pull > 0 || pullRefreshing}
+				<!-- Pull to refresh: follows the finger down, spins while the page reloads. -->
+				<div
+					class="pointer-events-none absolute left-1/2 top-[env(safe-area-inset-top)] z-10 flex size-10 -translate-x-1/2 items-center justify-center rounded-full border bg-card shadow-md md:hidden"
+					style="transform:translate(-50%, {pullRefreshing ? 16 : pull - 24}px);opacity:{pullRefreshing ? 1 : Math.min(1, pull / PULL_AT)}"
+				>
+					<HugeiconsIcon
+						icon={Refresh01Icon}
+						class="h-5 w-5 text-primary {pullRefreshing ? 'animate-spin' : ''}"
+						style={pullRefreshing ? '' : `transform:rotate(${pull * 4}deg)`}
+					/>
+				</div>
+			{/if}
 			<!-- Always mounted, unlike the player view below it: it owns the one <video> element, which
 			     has to keep playing while the view is closed. It renders nothing but a zero-sized
 			     parking container until the view borrows the picture. Not on Linux, where mpv draws the
@@ -387,10 +470,35 @@
 	     <body>, so a z-50 banner loses the tie on DOM order and hides behind an open modal. The update
 	     banner also needs pointer-events-auto: an open dialog sets `pointer-events: none` on <body>,
 	     so without it the banner shows above the modal but its buttons can't be clicked. -->
+	{#if apkUpdate}
+		<!-- Android's update notice (lib/apkupdate.ts): the release page, where the APK is. -->
+		<div
+			transition:fly={{ y: 16, duration: 220, easing: cubicOut }}
+			class="pointer-events-auto fixed bottom-24 max-md:bottom-[calc(12rem_+_env(safe-area-inset-bottom))] left-1/2 z-[100] flex w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-3 rounded-lg border bg-card px-4 py-2 text-sm shadow-lg"
+		>
+			<span>{t('apk_update.available', { version: apkUpdate.version })}</span>
+			<Button size="sm" class="max-md:h-11" onclick={updateApk}>
+				{apkUpdate.apk ? t('apk_update.update') : t('apk_update.download')}
+			</Button>
+			<Button
+				variant="ghost"
+				size="icon-sm"
+				class="-mr-2 text-muted-foreground hover:text-foreground max-md:size-11"
+				aria-label={t('common.close')}
+				onclick={() => {
+					dismissApkUpdate(apkUpdate!.version);
+					apkUpdate = null;
+				}}
+			>
+				<HugeiconsIcon icon={Cancel01Icon} strokeWidth={2} />
+			</Button>
+		</div>
+	{/if}
+
 	{#if updateState.available}
 		<div
 			transition:fly={{ y: 16, duration: 220, easing: cubicOut }}
-			class="pointer-events-auto fixed bottom-24 max-md:bottom-[calc(17rem_+_env(safe-area-inset-bottom))] left-1/2 z-[100] flex -translate-x-1/2 items-center gap-3 rounded-lg border bg-card px-4 py-2 text-sm shadow-lg"
+			class="pointer-events-auto fixed bottom-24 max-md:bottom-[calc(12rem_+_env(safe-area-inset-bottom))] left-1/2 z-[100] flex -translate-x-1/2 items-center gap-3 rounded-lg border bg-card px-4 py-2 text-sm shadow-lg"
 		>
 			<span>{availableMessage(updateState.available)}</span>
 			{#if updateState.canInstall}
@@ -420,7 +528,7 @@
 		{@const t = ui.toast}
 		<div
 			transition:fly={{ y: 16, duration: 220, easing: cubicOut }}
-			class="fixed bottom-40 max-md:bottom-[calc(17rem_+_env(safe-area-inset-bottom))] left-1/2 z-[100] flex -translate-x-1/2 items-center gap-2 rounded-lg border bg-card px-4 py-2 text-sm shadow-lg"
+			class="fixed bottom-40 max-md:bottom-[calc(12rem_+_env(safe-area-inset-bottom))] left-1/2 z-[100] flex -translate-x-1/2 items-center gap-2 rounded-lg border bg-card px-4 py-2 text-sm shadow-lg"
 		>
 			<!-- Three branches instead of a ternary on `icon`: HugeiconsIcon freezes `icon` at mount, so a
 			     new toast replacing a visible one would keep the old glyph. -->

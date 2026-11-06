@@ -682,6 +682,43 @@ pub fn set_metered(state: St<'_>, metered: bool) {
     state.set_metered(metered);
 }
 
+/// Arm the sleep timer: `minutes`, `end_of_track`, or both (whichever comes first); neither
+/// switches it off. Returns what is armed now.
+#[tauri::command]
+pub async fn set_sleep_timer(
+    state: St<'_>,
+    minutes: Option<u64>,
+    end_of_track: bool,
+) -> Result<Option<crate::sleep::Armed>, String> {
+    Ok(crate::sleep::arm(state.inner().clone(), minutes, end_of_track).await)
+}
+
+#[tauri::command]
+pub fn get_sleep_timer(state: St<'_>) -> Option<crate::sleep::Armed> {
+    state.sleep.current()
+}
+
+/// Save a song for offline listening. Returns at once; the outcome arrives as `download-done` or
+/// `download-failed` (and `download-progress` meanwhile).
+#[tauri::command]
+pub fn download_song(state: St<'_>, song: SongItem) {
+    tauri::async_runtime::spawn(crate::downloads::download(state.inner().clone(), song));
+}
+
+#[tauri::command]
+pub fn remove_download(app: tauri::AppHandle, video_id: String) {
+    crate::downloads::remove(&app, &video_id);
+}
+
+/// The downloaded songs, newest first, and the bytes they take.
+#[tauri::command]
+pub fn list_downloads(app: tauri::AppHandle) -> serde_json::Value {
+    serde_json::json!({
+        "songs": crate::downloads::list(&app),
+        "bytes": crate::downloads::size(&app),
+    })
+}
+
 /// Wipe both cache tiers (URL cache + mpv on-disk audio cache). context/14.
 #[tauri::command]
 pub async fn clear_caches(state: St<'_>) -> Result<(), String> {

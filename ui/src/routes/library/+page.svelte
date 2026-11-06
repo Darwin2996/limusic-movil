@@ -19,8 +19,10 @@
 		SpotifyIcon,
 		SquareStackIcon,
 		UserCheck01Icon,
-		UserSharingIcon
+		UserSharingIcon,
+		Download04Icon
 	} from '@hugeicons/core-free-icons';
+	import DownloadsList from '$lib/components/DownloadsList.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import * as Tooltip from '$lib/components/ui/tooltip';
@@ -34,6 +36,7 @@
 		auth,
 		personal,
 		toast,
+		isAndroid,
 		library,
 		loadLibrary,
 		loadLibraryExtras,
@@ -225,6 +228,11 @@
 			<Tabs.Trigger value="local" class="flex-none">
 				<HugeiconsIcon icon={DriveIcon} class="h-4 w-4" /> {t('library.local_tab')}
 			</Tabs.Trigger>
+			{#if isAndroid}
+				<Tabs.Trigger value="downloads" class="flex-none">
+					<HugeiconsIcon icon={Download04Icon} class="h-4 w-4" /> {t('downloads.tab')}
+				</Tabs.Trigger>
+			{/if}
 			<Tabs.Trigger value="playlists" class="flex-none">
 				<HugeiconsIcon icon={Playlist02Icon} class="h-4 w-4" /> {t('library.playlists_tab')}
 			</Tabs.Trigger>
@@ -314,7 +322,9 @@
 			{/if}
 		</Tabs.Content>
 		<Tabs.Content value="local">{#if tab === 'local'}<LocalMusic />{/if}</Tabs.Content>
-		{#if tab === 'local' || tab === 'songs' || tab === 'uploads'}
+		<!-- Downloads, like Local, needs no account nor connection: it is what plays offline. -->
+		<Tabs.Content value="downloads">{#if tab === 'downloads'}<DownloadsList />{/if}</Tabs.Content>
+		{#if tab === 'local' || tab === 'downloads' || tab === 'songs' || tab === 'uploads'}
 			<!-- nothing else: the grid states below have no bearing on these three -->
 		{:else if loading}
 			<div class="card-grid">

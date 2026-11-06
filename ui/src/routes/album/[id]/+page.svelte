@@ -20,6 +20,7 @@
     import { availableColumns, tableColumns } from "$lib/trackcolumns";
     import TrackSelectionBar from "$lib/components/TrackSelectionBar.svelte";
     import TrackSelectButton from "$lib/components/TrackSelectButton.svelte";
+    import DownloadAllButton from "$lib/components/DownloadAllButton.svelte";
     import { trackSelection } from "$lib/selection.svelte";
     import TrackFilter, {
         filterTracks,
@@ -380,6 +381,10 @@
                 {/if}
                 <TrackSelectButton
                     {selection}
+                    class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border transition hover:bg-accent/10 hover:text-foreground"
+                />
+                <DownloadAllButton
+                    songs={album.items}
                     class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border transition hover:bg-accent/10 hover:text-foreground"
                 />
                 <button

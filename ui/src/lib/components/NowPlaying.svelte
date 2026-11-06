@@ -22,6 +22,7 @@
 	} from '@hugeicons/core-free-icons';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import * as api from '$lib/api';
+	import SleepTimer from './SleepTimer.svelte';
 	import {
 		isAndroid,
 		np,
@@ -537,6 +538,8 @@
 							{@render mode(true, t('player.video'))}
 						</div>
 					{/if}
+					<!-- The sleep timer on the right; col-start-3 so it stays there without the switch. -->
+					<div class="col-start-3 justify-self-end"><SleepTimer /></div>
 				</div>
 
 				<!-- A size container, so the picture can be sized against the space actually left

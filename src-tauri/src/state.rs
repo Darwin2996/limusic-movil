@@ -66,6 +66,8 @@ pub struct AppState {
     /// Android: the `quality_mobile` setting is in force because the phone is on mobile data
     /// (`set_metered`). Off, the ordinary `quality` setting applies.
     metered: std::sync::atomic::AtomicBool,
+    /// The sleep timer (`crate::sleep`): armed from the player, fires in the background.
+    pub sleep: crate::sleep::SleepTimer,
     /// OS media integration (MPRIS/SMTC/NowPlaying). `None` if it failed to init. context/16.
     media: Option<MediaHandle>,
     /// Discord rich presence. Fed the same track/playback changes as `media`; gated on the
@@ -491,6 +493,7 @@ impl AppState {
             lt,
             cache_dir,
             metered: std::sync::atomic::AtomicBool::new(false),
+            sleep: Default::default(),
             media,
             discord,
             lastfm,
@@ -1198,7 +1201,7 @@ impl AppState {
 
     /// `is_upload` comes off the queue row, never off `/player`: the response that has to be
     /// handled here (LOGIN_REQUIRED) carries no `videoDetails` to read it from. Issue #71.
-    async fn resolve(
+    pub(crate) async fn resolve(
         &self,
         video_id: &str,
         is_upload: bool,
@@ -1214,6 +1217,12 @@ impl AppState {
                 let _ = self.app.emit("local-changed", serde_json::json!({ "removed": removed }));
                 ResolveError::LocalMissing(path.to_owned())
             });
+        }
+        // Downloaded for offline listening: its file, network or not (downloads.rs).
+        if let Some(path) = crate::downloads::file_for(&self.app, video_id) {
+            if let Ok(data) = crate::local::playback_data(video_id, &path.to_string_lossy()) {
+                return Ok(data);
+            }
         }
         // Latency cache first (context/11) — honor expiry, never a source of truth.
         //
@@ -2417,7 +2426,7 @@ impl AppState {
         tracing::debug!(index = next_idx, "gapless lookahead primed");
     }
 
-    async fn current_item(&self) -> Option<SongItem> {
+    pub(crate) async fn current_item(&self) -> Option<SongItem> {
         let q = self.queue.lock().await;
         q.items.get(q.current).cloned()
     }

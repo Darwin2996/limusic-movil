@@ -336,7 +336,7 @@
      until the window was resized. Plain fade and one scale on a single element: nothing repeats. -->
 {#if dockable && open}
 	<div
-		class="fixed right-6 z-10 flex max-h-[min(36rem,calc(100vh-12rem))] max-md:max-h-[calc(100dvh_-_14rem_-_env(safe-area-inset-bottom))] w-[min(30rem,calc(100vw-3rem))] origin-bottom-right {playback.now ? 'bottom-24 max-md:bottom-[calc(16rem_+_env(safe-area-inset-bottom))]' : 'bottom-6 max-md:bottom-[calc(5rem_+_env(safe-area-inset-bottom))]'} flex-col rounded-2xl border bg-card p-2 pt-3 shadow-xl outline-none"
+		class="fixed right-6 z-10 flex max-h-[min(36rem,calc(100vh-12rem))] max-md:max-h-[calc(100dvh_-_14rem_-_env(safe-area-inset-bottom))] w-[min(30rem,calc(100vw-3rem))] origin-bottom-right {playback.now ? 'bottom-24 max-md:bottom-[calc(12rem_+_env(safe-area-inset-bottom))]' : 'bottom-6 max-md:bottom-[calc(5rem_+_env(safe-area-inset-bottom))]'} flex-col rounded-2xl border bg-card p-2 pt-3 shadow-xl outline-none"
 		role="dialog"
 		aria-label={t('library.suggestions')}
 		aria-busy={loading}
@@ -356,7 +356,7 @@
 	<!-- The shelf's own badge until the batch is in, then the next picks' covers: it reads as the
 	     same shelf, pocketed. -->
 	<button
-		class="fixed right-6 z-10 flex h-11 {playback.now ? 'bottom-24 max-md:bottom-[calc(16rem_+_env(safe-area-inset-bottom))]' : 'bottom-6 max-md:bottom-[calc(5rem_+_env(safe-area-inset-bottom))]'} cursor-pointer items-center gap-2.5 rounded-full border bg-card pl-1.5 pr-4 text-sm font-medium shadow-lg transition-colors hover:bg-muted"
+		class="fixed right-6 z-10 flex h-11 {playback.now ? 'bottom-24 max-md:bottom-[calc(12rem_+_env(safe-area-inset-bottom))]' : 'bottom-6 max-md:bottom-[calc(5rem_+_env(safe-area-inset-bottom))]'} cursor-pointer items-center gap-2.5 rounded-full border bg-card pl-1.5 pr-4 text-sm font-medium shadow-lg transition-colors hover:bg-muted"
 		aria-expanded="false"
 		onclick={() => (open = true)}
 		transition:fade={{ duration: ms(150) }}

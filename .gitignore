@@ -31,3 +31,6 @@ rustypipe_reports/
 /plans
 scripts/bench.sh
 scripts/triage.py
+
+# Android APKs built by scripts/android-release.ps1
+/dist/

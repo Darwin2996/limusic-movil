@@ -1325,5 +1325,37 @@
 		"body": "Móviles como los Xiaomi cierran las apps en segundo plano para ahorrar batería, y eso corta la música. Permite que LiMusic funcione en segundo plano para que siga sonando con la pantalla apagada.",
 		"allow": "Permitir",
 		"later": "Ahora no"
+	},
+	"sleep_timer": {
+		"title": "Temporizador",
+		"minutes": "{count} minutos",
+		"end_of_track": "Al acabar esta canción",
+		"off": "Desactivar",
+		"left": "{count} min",
+		"armed_track": "Se detendrá al acabar esta canción",
+		"armed_minutes": "Se detendrá en {count} min",
+		"fired": "Temporizador: música en pausa"
+	},
+	"apk_update": {
+		"available": "LiMusic {version} está disponible",
+		"download": "Descargar",
+		"update": "Actualizar",
+		"downloading": "Descargando la actualización…",
+		"allow_installs": "Permite que LiMusic instale apps y vuelve a pulsar Actualizar.",
+		"failed": "No se pudo descargar la actualización: {error}"
+	},
+	"downloads": {
+		"title": "Descargas",
+		"tab": "Descargas",
+		"download": "Descargar",
+		"download_all": "Descargar todo",
+		"remove": "Quitar descarga",
+		"downloading": "Descargando… {percent} %",
+		"summary": "{count} canciones · {size}",
+		"in_progress": "{count} descargándose",
+		"empty": "Aún no hay nada descargado. Descarga una canción desde su menú ⋯, o un álbum o una playlist entera desde su página, para escucharla sin conexión.",
+		"queued": "Descargando {count} canciones",
+		"nothing_new": "Ya está descargado",
+		"failed": "No se pudo descargar: {error}"
 	}
 }

@@ -873,6 +873,9 @@ export const pickAndroidLocalFolder = () => invoke<string | null>('pick_android_
 export const deleteAndroidLocalFolder = (path: string) => invoke<void>('delete_android_local_folder', { path });
 /** Android: tell the backend whether the phone is on mobile data (picks `quality_mobile`). */
 export const setMetered = (metered: boolean) => invoke<void>('set_metered', { metered });
+/** Android: download a release APK and open the system installer (`INSTALL_PERMISSION` error
+ *  while installs from the app still have to be allowed). */
+export const installApkUpdate = (url: string) => invoke<void>('install_apk_update', { url });
 /** Android only: send the app to the background, as Back does on the first page. */
 export const androidMoveToBackground = () => invoke<void>('android_move_to_background');
 /** Whether Android exempts the app from battery optimization (always true off Android). */
@@ -1114,6 +1117,31 @@ export const onAccountSelectionRequired = (cb: () => void): Promise<UnlistenFn> 
  * Local music disappeared from disk. Fired when a play attempt finds nothing there, carrying the
  * song (and album, if that emptied it) so every view holding those ids can drop them at once.
  */
+/** Save a song for offline listening; the outcome arrives through the download events below. */
+export const downloadSong = (song: SongItem) => invoke<void>('download_song', { song });
+export const removeDownload = (videoId: string) => invoke<void>('remove_download', { videoId });
+/** The downloaded songs, newest first, and the bytes they take on disk. */
+export const listDownloads = () => invoke<{ songs: SongItem[]; bytes: number }>('list_downloads');
+export type DownloadProgress = { videoId: string; received: number; total: number | null };
+export const onDownloadProgress = (cb: (p: DownloadProgress) => void): Promise<UnlistenFn> =>
+	listen<DownloadProgress>('download-progress', (e) => cb(e.payload));
+export const onDownloadDone = (cb: (videoId: string) => void): Promise<UnlistenFn> =>
+	listen<{ videoId: string }>('download-done', (e) => cb(e.payload.videoId));
+export const onDownloadFailed = (
+	cb: (videoId: string, error: string) => void
+): Promise<UnlistenFn> =>
+	listen<{ videoId: string; error: string }>('download-failed', (e) =>
+		cb(e.payload.videoId, e.payload.error)
+	);
+/** The sleep timer while armed: a wall-clock deadline (Unix ms), "end of track", or both. */
+export type SleepTimer = { untilMs: number | null; endOfTrack: boolean };
+/** Arm the sleep timer (minutes, end of track, or both); `null` and `false` switch it off. */
+export const setSleepTimer = (minutes: number | null, endOfTrack: boolean) =>
+	invoke<SleepTimer | null>('set_sleep_timer', { minutes, endOfTrack });
+export const getSleepTimer = () => invoke<SleepTimer | null>('get_sleep_timer');
+/** The sleep timer fired (paused playback) and is off again. */
+export const onSleepTimerFired = (cb: () => void): Promise<UnlistenFn> =>
+	listen('sleep-timer', () => cb());
 export const onLocalChanged = (cb: (removed: string[]) => void): Promise<UnlistenFn> =>
 	listen<{ removed: string[] }>('local-changed', (e) => cb(e.payload.removed));
 export const onLoginError = (cb: (msg: string) => void): Promise<UnlistenFn> =>

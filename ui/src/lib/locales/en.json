@@ -1325,5 +1325,37 @@
 		"body": "Phones like Xiaomi close apps in the background to save battery, which stops the music. Allow LiMusic to run in the background so it keeps playing with the screen off.",
 		"allow": "Allow",
 		"later": "Not now"
+	},
+	"sleep_timer": {
+		"title": "Sleep timer",
+		"minutes": "{count} minutes",
+		"end_of_track": "End of this song",
+		"off": "Turn off",
+		"left": "{count} min",
+		"armed_track": "Stops when this song ends",
+		"armed_minutes": "Stops in {count} min",
+		"fired": "Sleep timer: music paused"
+	},
+	"apk_update": {
+		"available": "LiMusic {version} is available",
+		"download": "Download",
+		"update": "Update",
+		"downloading": "Downloading the update…",
+		"allow_installs": "Allow LiMusic to install apps, then tap Update again.",
+		"failed": "Couldn't download the update: {error}"
+	},
+	"downloads": {
+		"title": "Downloads",
+		"tab": "Downloads",
+		"download": "Download",
+		"download_all": "Download all",
+		"remove": "Remove download",
+		"downloading": "Downloading… {percent}%",
+		"summary": "{count} songs · {size}",
+		"in_progress": "{count} downloading",
+		"empty": "Nothing downloaded yet. Download a song from its ⋯ menu, or a whole album or playlist from its page, to listen without a connection.",
+		"queued": "Downloading {count} songs",
+		"nothing_new": "Already downloaded",
+		"failed": "Couldn't download: {error}"
 	}
 }

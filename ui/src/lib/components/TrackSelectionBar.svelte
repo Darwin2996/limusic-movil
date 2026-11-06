@@ -98,7 +98,7 @@
 {#if selection.active}
 	<div
 		transition:fly={{ y: 16, duration: 220, easing: cubicOut }}
-		class="fixed bottom-24 max-md:bottom-[calc(17rem_+_env(safe-area-inset-bottom))] left-1/2 z-40 flex max-w-[min(44rem,calc(100vw-2rem))] -translate-x-1/2 flex-col gap-1 rounded-2xl border bg-card px-2 py-2 shadow-lg"
+		class="fixed bottom-24 max-md:bottom-[calc(12rem_+_env(safe-area-inset-bottom))] left-1/2 z-40 flex max-w-[min(44rem,calc(100vw-2rem))] -translate-x-1/2 flex-col gap-1 rounded-2xl border bg-card px-2 py-2 shadow-lg"
 		data-track-selection
 	>
 		<div class="flex flex-wrap items-center justify-center gap-1" role="group" aria-label={t('selection.actions')}>

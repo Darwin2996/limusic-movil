@@ -54,6 +54,11 @@ class DeleteImportedFolderArgs {
 }
 
 @InvokeArg
+class InstallApkArgs {
+  lateinit var url: String
+}
+
+@InvokeArg
 class SignInGoogleArgs {
   var addAccount: Boolean = false
 }
@@ -128,6 +133,16 @@ class PlayerPlugin(private val activity: Activity) : Plugin(activity) {
     val cookie = result.data?.getStringExtra(GoogleLoginActivity.EXTRA_COOKIE)
       ?.takeIf { result.resultCode == Activity.RESULT_OK && it.isNotBlank() }
     invoke.resolveObject(mapOf("cookie" to cookie))
+  }
+
+  /** Download a release APK and open Android's installer (`ApkUpdater`). Resolves once the
+   * installer is up; rejects with `INSTALL_PERMISSION` or the download error. */
+  @Command
+  fun installApkUpdate(invoke: Invoke) {
+    val args = invoke.parseArgs(InstallApkArgs::class.java)
+    ApkUpdater.install(activity, args.url) { error ->
+      if (error == null) invoke.resolve() else invoke.reject(error)
+    }
   }
 
   /** The off-screen session refresh (`GoogleSessionRefresher`): load music.youtube.com, read the
