@@ -19,7 +19,8 @@
 		ArrowUp01Icon,
 		ArrowDown01Icon
 	} from '@hugeicons/core-free-icons';
-	import { fade } from 'svelte/transition';
+	import { fade, fly } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
 	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import * as api from '$lib/api';
@@ -126,6 +127,15 @@
 	// also eats the click it ends in, or lifting the finger would toggle the player too. The bar is
 	// `touch-none` while collapsed: with the default the browser claimed the gesture as a pan and
 	// sent pointercancel, so the swipe never ended here.
+	// Where the next track's cover and title slide in from: the side a swipe sent the old one
+	// toward, else from the right. A few pixels and 200ms, so it reads as motion, not as a wait.
+	let enterX = $state(16);
+	$effect(() => {
+		void playback.now?.videoId;
+		// Once the new block's slide has started with it, the next change starts from the default.
+		const reset = setTimeout(() => (enterX = 16), 400);
+		return () => clearTimeout(reset);
+	});
 	let swipeFrom: { x: number; y: number } | null = null;
 	let swiped = false;
 	function onSwipeStart(e: PointerEvent) {
@@ -139,6 +149,7 @@
 		swipeFrom = null;
 		if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
 			swiped = true;
+			enterX = dx < 0 ? 24 : -24;
 			if (dx < 0) api.nextTrack();
 			else api.prevTrack();
 		} else if (dy < -50 && Math.abs(dy) > Math.abs(dx) * 1.5) {
@@ -190,7 +201,7 @@
 					alt=""
 					style="max-width:none"
 					class="h-12 w-12 shrink-0 rounded-lg object-cover"
-					in:fade={{ duration: 250 }}
+					in:fly={{ x: enterX, duration: 200, easing: cubicOut }}
 				/>
 			{:else}
 				<div
@@ -200,46 +211,48 @@
 				</div>
 			{/if}
 		{/key}
-		<div class="min-w-0">
-			<div class="flex items-center gap-1.5">
-				{#snippet title()}
-					<Marquee
-						text={playback.now?.title ?? t('player.not_playing')}
-						class="text-sm font-medium"
-					/>
-				{/snippet}
-				<!-- The button wraps the whole marquee rather than the text inside it: mid-scroll the
-				     visible half of the line is the inert trailing copy, so a button around the text
-				     itself is only clickable while the original copy is on screen. The underline goes
-				     on the spans, not the button: text-decoration doesn't reach the trailing copy,
-				     which is absolutely positioned. -->
-				{#if albumId}
-					<button
-						class="min-w-0 cursor-pointer text-left hover:[&_span]:underline"
-						onclick={() => goto(`/album/${encodeURIComponent(albumId)}`)}
-					>
+		{#key playback.now?.videoId}
+			<div class="min-w-0" in:fly={{ x: enterX, duration: 200, easing: cubicOut }}>
+				<div class="flex items-center gap-1.5">
+					{#snippet title()}
+						<Marquee
+							text={playback.now?.title ?? t('player.not_playing')}
+							class="text-sm font-medium"
+						/>
+					{/snippet}
+					<!-- The button wraps the whole marquee rather than the text inside it: mid-scroll the
+					     visible half of the line is the inert trailing copy, so a button around the text
+					     itself is only clickable while the original copy is on screen. The underline goes
+					     on the spans, not the button: text-decoration doesn't reach the trailing copy,
+					     which is absolutely positioned. -->
+					{#if albumId}
+						<button
+							class="min-w-0 cursor-pointer text-left hover:[&_span]:underline"
+							onclick={() => goto(`/album/${encodeURIComponent(albumId)}`)}
+						>
+							{@render title()}
+						</button>
+					{:else}
 						{@render title()}
-					</button>
-				{:else}
-					{@render title()}
-				{/if}
-				{#if autoplayTrack}
-					<span
-						class="shrink-0 text-muted-foreground"
-						title={t('player.autoplay_notice')}
-						in:fade={{ duration: 200 }}
-					>
-						<HugeiconsIcon icon={InfinityIcon} class="h-3.5 w-3.5" />
-					</span>
-				{/if}
+					{/if}
+					{#if autoplayTrack}
+						<span
+							class="shrink-0 text-muted-foreground"
+							title={t('player.autoplay_notice')}
+							in:fade={{ duration: 200 }}
+						>
+							<HugeiconsIcon icon={InfinityIcon} class="h-3.5 w-3.5" />
+						</span>
+					{/if}
+				</div>
+				<ArtistLine
+					runs={playback.now?.artistRuns}
+					text={playback.now?.artists ?? ''}
+					marquee
+					class="block max-w-full text-xs text-muted-foreground"
+				/>
 			</div>
-			<ArtistLine
-				runs={playback.now?.artistRuns}
-				text={playback.now?.artists ?? ''}
-				marquee
-				class="block max-w-full text-xs text-muted-foreground"
-			/>
-		</div>
+		{/key}
 		{#if playback.now}
 			<div class="flex items-center max-md:hidden">
 				<!-- A local file has no YouTube identity (see api.isLocalId): nothing to like. It can

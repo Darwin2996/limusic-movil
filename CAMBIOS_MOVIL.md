@@ -231,3 +231,6 @@ Detalle y estado de cada tarea en `TAREAS_MOVIL.md`. Resumen de lo aplicado:
   `touch-action: none` en la barra plegada funcionan. Probado en el Xiaomi en ambas direcciones.
 - [x] El usuario confirmó el aviso de batería y «Escuchar juntos» funcionando.
 - [ ] Sin probar: la calidad con datos móviles en una reproducción.
+- [x] Animación al cambiar de canción: en la barra del reproductor, la portada y el título nuevos entran
+  deslizándose 24 px (200 ms) desde el lado del gesto, o desde la derecha si cambia sola o con los
+  botones. Medido en el Xiaomi con `getAnimations()`. Se desactiva con la opción de reducir animaciones.
