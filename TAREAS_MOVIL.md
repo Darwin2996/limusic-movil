@@ -5,117 +5,170 @@ Lista de trabajo viva. Se actualiza al empezar y terminar cada tarea; lo ya hech
 
 Estado: `[ ]` pendiente · `[~]` en curso · `[x]` hecho · `[?]` necesita una decisión tuya
 
-Orden recomendado: 1 → 2 → 3. La fase 1 es rápida y limpia la interfaz antes de rediseñarla.
+| Fase | Contenido | Por qué en este orden |
+| ---- | --------- | --------------------- |
+| 1 | Base y limpieza | La APK de release acelera cada prueba posterior y quitar lo sobrante evita rediseñarlo |
+| 2 | Fallos | Lo que hoy está roto o se ve mal |
+| 3 | Diseño y accesibilidad | Rediseño sobre una base ya limpia y sin fallos |
+| 4 | Comodidad en el día a día | Detalles que hacen la app agradable de usar a diario |
+| — | Ideas sin decidir | Funciones nuevas; se eligen cuando acaben las fases |
 
 ---
 
-## Fase 1 — Quitar lo que no tiene sentido en móvil
+## Fase 1 — Base y limpieza
 
+- [ ] **APK de release firmada:** la de depuración pesa unos 640 MB, tarda unos 5 min en instalarse y va
+  sin optimizar (parte de la lentitud). Una release es mucho más pequeña y rápida. Va primero porque
+  acorta cada ciclo de prueba de todas las fases.
 - [ ] **Discord fuera de Android:** quitar del menú **Más** las dos entradas («Presencia en Discord» y
   «Discord»), la sección Discord de Configuración y su vista previa. En el backend, no arrancar el cliente
-  de Discord en Android: ahora intenta conectar cada 15 s sin éxito (se ve en los registros).
+  de Discord en Android: ahora intenta conectar cada 15 s sin éxito.
 - [ ] **Menú Más más corto:** «Abrir reproductor», «Cola», «Letra» y «Comentarios» repiten lo que ya hay
-  en el reproductor ampliado. Quitarlos del menú.
-- [ ] **Buscar actualizaciones:** el actualizador es el de escritorio y no sabe nada de Android. Ocultarlo
-  en móvil (o, más adelante, comprobar versiones de la APK).
+  en el reproductor ampliado.
+- [ ] **Last.fm en el menú Más:** el texto «Last.fm» hace de icono y desalinea la fila; usar el icono.
+- [ ] **Buscar actualizaciones:** es el actualizador de escritorio y no sirve en Android. Ocultarlo.
 - [ ] **Opciones de escritorio en Configuración** (bandeja del sistema, inicio automático, iniciar
-  minimizado, barra de título del sistema…): hoy se ocultan por **ancho de pantalla**, así que en una
-  tableta o en horizontal vuelven a aparecer. Ocultarlas por plataforma (`isAndroid`).
-- [ ] **Minirreproductor de escritorio y atajos de teclado:** confirmar que no queda ningún acceso en
-  Android (los atajos ya están ocultos).
-- [ ] **Last.fm en el menú Más:** el texto «Last.fm» hace de icono y desalinea la fila; usar el icono
-  como en las demás entradas.
+  minimizado, barra de título…): hoy se ocultan por **ancho de pantalla** y reaparecen en tableta o en
+  horizontal. Ocultarlas por plataforma (`isAndroid`).
+- [ ] **Minirreproductor de escritorio y atajos de teclado:** confirmar que no queda ningún acceso.
+- [ ] **Batería:** Rust consulta el reproductor Android cada 250 ms siempre, aunque no suene nada
+  (`spawn_android_player_bridge` en `lib.rs`). Espaciar la consulta o pararla en pausa.
 
-## Fase 2 — Bugs y problemas visuales
+## Fase 2 — Fallos
 
-Vistos en el Xiaomi (06/11/2026):
+### Prioridad alta
 
-- [ ] **Inicio:** al desplazar, la barra de chips (Todo, Pódcasts…) se queda fija pero por debajo de la
-  barra de estado, y el reloj y los iconos se solapan con ella. Falta el margen del área segura superior.
-- [ ] **Inicio:** asoma un botón morado flotante por detrás de la pestaña «Más» de la barra inferior.
-- [ ] **Reproductor ampliado:** no ocupa la pantalla. Siguen visibles la barra compacta (con sus propios
-  controles) y la navegación inferior, la portada es pequeña y el nombre del artista se parte en dos
-  líneas aunque sobra espacio. (Se rediseña en la fase 3; aquí, como mínimo, que tape la barra compacta.)
+- [ ] **Listas de canciones de playlist y álbum:** se muestra la tabla de escritorio comprimida en 406 px.
+  Los títulos quedan en 3 o 4 letras («Whe…», «Can …»), el número de reproducciones se monta sobre el
+  icono de me gusta, ese icono tapa el título en «Música que me gusta» y el artista se corta. La cabecera
+  de columnas y «Elegir columnas» no tienen sentido en móvil. Hace falta una fila móvil: portada, título y
+  artista a todo el ancho, y menú de tres puntos.
+- [ ] **Botón atrás de Android:** cierra el menú o diálogo abierto **y además** retrocede de página
+  (comprobado con el menú de una canción y con «Escuchar juntos»). Debe cerrar solo el menú o diálogo.
+- [ ] **Reproductor ampliado:** no ocupa la pantalla; siguen visibles la barra compacta (con sus propios
+  controles) y la navegación inferior. Como mínimo, que tape ambas (el rediseño completo está en la
+  fase 3).
+
+### Barra de estado y elementos solapados
+
+- [ ] **Contenido bajo la barra de estado:** al desplazar, todo pasa por debajo del reloj y los iconos sin
+  fondo (Inicio, artista, playlist). Quedan fijos detrás del reloj la barra de chips de Inicio, el
+  buscador «Buscar en este álbum» y la cabecera de la tabla. Añadir margen del área segura y un fondo o
+  degradado bajo la barra de estado.
+- [ ] **Inicio:** con la sesión iniciada, la foto de perfil queda encima del botón de Historial.
+- [ ] **Inicio:** asoma un botón morado flotante detrás de la pestaña «Más» de la barra inferior.
+- [ ] **Configuración:** el título de la sección sale dos veces, y por encima del panel se ve la página
+  de detrás. Además se abre en la última sección visitada (a menudo, Discord).
+- [ ] **Página de artista:** en «Canciones principales», me gusta, no me gusta y menú ocupan tanto que el
+  título se corta y «47 M reproducciones» se parte en dos líneas. Pasar me gusta/no me gusta al menú.
+- [ ] **Páginas de detalle sin botón de volver** (artista, álbum, playlist): añadir una flecha visible.
 - [ ] **Buscar:** el texto de ejemplo del buscador se corta («…, artista»).
 
-- [ ] **Barra de estado en todas las páginas:** al desplazar, el contenido pasa por debajo del reloj y los
-  iconos sin ningún fondo (visto en Inicio y en la página de artista). Añadir un fondo o degradado bajo la
-  barra de estado.
-- [ ] **Configuración:** el título de la sección sale dos veces (en el selector y justo debajo). Además, por
-  encima del panel se ve la página de detrás bajo la barra de estado.
-- [ ] **Página de artista:** en «Canciones principales», los botones de me gusta, no me gusta y menú
-  ocupan tanto ancho que el título se corta («Que Fue Lo Q…») y «47 M reproducciones» se parte en dos
-  líneas, lo que hace las filas muy altas. En móvil, pasar me gusta/no me gusta al menú de tres puntos.
-- [ ] **Páginas de detalle sin botón de volver** (artista, álbum…): solo se puede volver con el gesto o
-  botón atrás de Android. Añadir una flecha visible arriba a la izquierda.
-- [ ] **PoToken no disponible en Android** (aviso en los registros: «BotGuard is not available in this
-  Android build»). Hoy todo suena por VISIONOS; si YouTube empieza a exigir PoToken, la reproducción
-  podría fallar con errores 403. Vigilar.
+### Textos y números
 
-Pendientes heredados de `CAMBIOS_MOVIL.md`:
+- [ ] **10 textos sin traducir al español:** `player.scroll_to_end` («Scroll to bottom»),
+  `player.fullscreen_video`, `player.exit_fullscreen_video`, `library.suggestions_show`,
+  `library.suggestions_hide`, `library.suggestions_hidden`, `settings.general.play_on_start` (+ `_hint`),
+  `settings.themes.now_playing_pill` (+ `_hint`).
+- [ ] **Números mal formateados:** «2768 M reproducciones» (página de artista) y «0+ horas» en la cabecera
+  de una playlist de 6 canciones (revisar si viene así de YouTube).
+- [ ] **Nombre en el lanzador:** la app aparece como «limusic», en minúsculas. Cambiarlo a «LiMusic».
 
-- [ ] Probar **Escuchar juntos** con otra persona tras el arreglo de la pantalla en blanco.
-- [ ] Ajustes: comprobar el desplazamiento de las secciones Discord (si sigue) y Last.fm.
-- [ ] Música local: subcarpetas, varios formatos (FLAC, M4A, OGG…), bibliotecas grandes y errores de
-  lectura.
-- [ ] Probar en el teléfono: importación de Spotify, Teatro con vídeo, textos largos y tamaño de letra
-  del sistema grande.
-- [ ] Aviso de Android 16 sobre «técnicas de refuerzo incompatibles»: no se ha vuelto a reproducir;
-  investigar si reaparece.
+### Riesgos técnicos
 
-Mejoras técnicas que afectan al uso:
+- [ ] **Descifrado sin WebView** (QuickJS, ya en las dependencias) para recuperar los clientes de YouTube
+  que hoy se omiten en Android. Todo suena por VISIONOS; si falla, no hay alternativa.
+- [ ] **PoToken no disponible en Android** («BotGuard is not available in this Android build»). Si YouTube
+  lo empieza a exigir, la reproducción podría fallar con errores 403. Vigilar.
+- [ ] **Renovar la sesión de Google en segundo plano:** hoy, si caduca, hay que volver a iniciar sesión.
 
-- [ ] **APK de release:** la de depuración pesa unos 640 MB, tarda unos 5 min en instalarse y va sin
-  optimizar (parte de la lentitud). Configurar una compilación release firmada (más pequeña y rápida).
-- [ ] **Descifrado sin WebView** (QuickJS, ya está en las dependencias) para recuperar los clientes de
-  YouTube que hoy se omiten en Android. Ahora todo suena por el cliente VISIONOS; si algún día falla,
-  no hay alternativa.
-- [ ] **Renovar la sesión de Google en segundo plano** en Android (en escritorio lo hace un WebView
-  oculto, que aquí no es posible). Hoy, si caduca, hay que volver a iniciar sesión.
+### Pruebas pendientes en el teléfono
 
-- [ ] **Batería:** Rust consulta el estado del reproductor Android cada 250 ms siempre, aunque no suene
-  nada (`spawn_android_player_bridge` en `lib.rs`). Espaciar la consulta o pararla cuando está en pausa.
-- [ ] Comprobar en el teléfono: desconectar auriculares pausa la música, una llamada la interrumpe y
-  luego se reanuda, y el paso a la siguiente canción con la pantalla apagada.
+- [ ] **Escuchar juntos** con otra persona, tras el arreglo de la pantalla en blanco.
+- [ ] **Modo Teatro**, con y sin vídeo.
+- [ ] **Audio:** desconectar auriculares pausa; una llamada interrumpe y luego se reanuda; botones de
+  auriculares Bluetooth; paso a la siguiente canción con la pantalla apagada.
+- [ ] **Música local:** subcarpetas, varios formatos (FLAC, M4A, OGG…), bibliotecas grandes y errores.
+- [ ] **Importación de Spotify**, textos largos y tamaño de letra del sistema grande.
+- [ ] **Sin conexión o con mala red:** qué ve el usuario y si se recupera solo al volver la red.
+- [ ] Aviso de Android 16 sobre «técnicas de refuerzo incompatibles»: investigar si reaparece.
 
-## Fase 3 — Estética y accesibilidad móvil
+## Fase 3 — Diseño y accesibilidad
+
+### Reproductor
 
 - [ ] **Reproductor ampliado a pantalla completa:** portada grande, título y artista legibles, controles
   propios, deslizar hacia abajo para cerrar y a los lados para cambiar de canción. Cola, letra y
-  comentarios como pestañas o paneles inferiores.
-- [ ] **Barra compacta del reproductor más pequeña:** hoy ocupa tres filas (canción, progreso y
-  controles). Dejarla en una sola fila con una línea de progreso fina, para dejar más pantalla al contenido.
-- [ ] **Botón atrás de Android:** que cierre primero menús, diálogos y el reproductor ampliado antes de
-  cambiar de página.
-- [ ] **Áreas táctiles de 48 dp como mínimo** en iconos pequeños (tres puntos, me gusta, cerrar, chips).
-- [ ] **Contraste:** los números de posición en «Artistas familiares» (morado sobre foto) y los textos
-  grises sobre fondos oscuros.
-- [ ] **Tamaño de letra del sistema:** que la interfaz respete la escala de fuente de Android sin romper
-  la disposición.
-- [ ] **Menús emergentes como hojas inferiores** (por ejemplo, el de iniciar sesión dentro de Más), que
-  es lo que se espera en móvil.
-- [ ] **Revisión visual general:** espaciados, jerarquía de títulos y coherencia entre pantallas
-  (Inicio, Buscar, Biblioteca, Estadísticas, artista, álbum y playlist), en tema oscuro y claro.
-- [ ] Etiquetas de accesibilidad en los botones que solo tienen icono (TalkBack).
+  comentarios como pestañas o paneles inferiores. El botón atrás lo cierra antes de cambiar de página.
+- [ ] **Barra compacta en una sola fila:** hoy ocupa tres (canción, progreso y controles). Una fila con
+  portada, título, reproducir/pausa y siguiente, más una línea de progreso fina.
 
-## Ideas de funciones nuevas (sin decidir)
+### Menús y navegación
+
+- [ ] **Menús como hojas inferiores:** el menú de una canción (13 opciones en un menú emergente que tapa
+  el reproductor), el de iniciar sesión dentro de Más y el resto de menús emergentes.
+- [ ] **Revisión visual general:** espaciados, jerarquía de títulos y coherencia entre Inicio, Buscar,
+  Biblioteca, Estadísticas, artista, álbum y playlist, en tema oscuro y claro.
+
+### Accesibilidad
+
+- [ ] **Áreas táctiles de 44–48 px como mínimo.** Medidas con la auditoría:
+  - Nombres de artista en todas las filas y tarjetas: 16 px de alto.
+  - Selectores de día y hora en Estadísticas: 16 px; pestañas de periodo: 29 px.
+  - Buscadores: Inicio 36 px; «Buscar en tu historial» y «Buscar en este álbum»: 20 px.
+  - Quitar una búsqueda reciente (×): 24 px; «Limpiar»: 16 px.
+  - Barra de progreso del reproductor: 28 px; título de la canción en la barra: 20 px.
+  - Reproducir en tarjetas: 36 px; «Importar» y «Nueva playlist»: 32 px.
+  - Ordenar, dirección de orden y «Elegir columnas»: 28–32 px.
+- [ ] **Textos demasiado pequeños:** barra inferior (10,4 px), insignia «Experimental» (10 px) y
+  «usuarios mensuales» en artistas relacionados (11 px).
+- [ ] **Contraste:** números de posición en «Artistas familiares» (morado sobre foto), textos grises
+  sobre fondo oscuro, y «suscriptores»/«usuarios mensuales» sobre la foto del artista (añadir degradado).
+- [ ] **Estados que solo se distinguen por el color** (pestaña activa, «me gusta» marcado): añadir forma,
+  relleno o texto, para personas con daltonismo.
+- [ ] **Tamaño de letra del sistema:** respetar la escala de fuente de Android sin romper la disposición.
+- [ ] **Etiquetas para TalkBack** en los botones que solo tienen icono.
+
+## Fase 4 — Comodidad en el día a día
+
+- [ ] **Pulsación larga en una canción** abre su menú (hoy solo el botón de tres puntos, pequeño).
+- [ ] **Gestos en la barra compacta:** deslizar a los lados para cambiar de canción y hacia arriba para
+  abrir el reproductor.
+- [ ] **Volver a pulsar la pestaña activa** de la barra inferior sube al principio de la página.
+- [ ] **Conservar la posición de desplazamiento** al volver atrás a una lista o página.
+- [ ] **Deslizar hacia abajo para recargar** en Inicio y Biblioteca.
+- [ ] **Calidad distinta en Wi-Fi y en datos móviles:** hoy hay un único ajuste de calidad.
+- [ ] **Ahorro de batería de MIUI/Android:** la app no está excluida, y Xiaomi suele cerrar apps en segundo
+  plano, lo que corta la música. Al primer uso, explicar cómo excluirla y ofrecer el ajuste del sistema.
+- [ ] **Retomar la última sesión:** al abrir la app, recuperar la cola y la posición de la última canción
+  (comprobar qué hace hoy la opción «reproducir al iniciar»).
+- [ ] **Bloquear la app en vertical en teléfonos** (decidido el 06/11/2026): hoy gira libremente a
+  horizontal, que no está diseñada.
+
+## Ideas sin decidir
 
 - [ ] **Abrir enlaces compartidos:** que LiMusic aparezca al pulsar «Compartir» en un enlace de YouTube o
   YouTube Music desde otra app, y lo reproduzca.
 - [ ] **Temporizador de apagado:** parar la música tras X minutos o al acabar la canción.
+- [ ] **Me gusta desde la notificación** y la pantalla de bloqueo.
 - [ ] **Descargas sin conexión** de canciones o playlists.
 - [ ] **Widget** de pantalla de inicio con la canción actual y los controles.
 - [ ] **Android Auto.**
+- [ ] **Avisar de versiones nuevas de la APK** (por ejemplo, desde las releases de GitHub).
 
-Ya comprobado y correcto: la notificación y la pantalla de bloqueo muestran portada, artista, controles
-y barra de progreso.
+## Ya comprobado y correcto
 
-## Fase 4 — Estadísticas compartidas con escritorio (descartada)
+- Pantalla en blanco al reproducir: arreglada (commit `62262fb`).
+- Inicio de sesión con Google: funciona con la página oficial de Google (commit `06529af`).
+- La notificación y la pantalla de bloqueo muestran portada, artista, controles y barra de progreso.
+- La app no registra errores en los logs durante el uso normal.
 
-Descartada el 06/11/2026: se usa la app oficial de escritorio sin modificar, que no tiene importación
-ni sincronización. Compartir estadísticas solo sería posible copiando a mano su archivo
-`%APPDATA%\com.limusic.desktop\limusic.sqlite`, y no se quiere nada que no sea automático. Las playlists,
-los «Me gusta» y la biblioteca de YouTube Music ya se comparten a través de la cuenta de Google.
+## Descartado
 
-Si en el futuro la app oficial añade exportación o sincronización, se puede retomar: el formato de
-estadísticas es el mismo en ambas (tablas `listens` y `listen_songs`, esquema versión 2).
+- **Estadísticas compartidas con la app de escritorio** (06/11/2026): la app oficial no tiene importación
+  ni sincronización, y solo sería posible copiando a mano su archivo
+  `%APPDATA%\com.limusic.desktop\limusic.sqlite`. No se quiere nada que no sea automático. Las playlists,
+  los «Me gusta» y la biblioteca ya se comparten a través de la cuenta de Google. Si la app oficial añade
+  sincronización, se puede retomar: el formato de estadísticas es el mismo (tablas `listens` y
+  `listen_songs`, esquema versión 2).
+- **Respetar la opción de Android de quitar animaciones** (06/11/2026): no se implementa.
