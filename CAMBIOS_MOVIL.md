@@ -279,3 +279,15 @@ Detalle y estado de cada tarea en `TAREAS_MOVIL.md`. Resumen de lo aplicado:
 - [x] **Widget de pantalla de inicio** (`PlayerWidget.kt`): portada, título, artista y
   anterior/reproducir/siguiente; si la app no está abierta, la abre.
 - [x] Compila (Rust, Kotlin y la interfaz). [ ] Sin probar en el teléfono.
+
+## Fuentes, temas y estilos (06/11/2026)
+
+- [x] **10 fuentes nuevas** (Fontsource): Inter, Manrope, Space Grotesk, Nunito, Quicksand, Comfortaa,
+  Lora, Playfair Display, Atkinson Hyperlegible (de lectura fácil) y JetBrains Mono. El selector las
+  muestra con su propia tipografía.
+- [x] **5 temas de color nuevos**, con modo claro y oscuro: Ocean, Sunset, Pastel, Forest y High contrast.
+  Los cuatro primeros se generan a partir de un tono; el de alto contraste está hecho a mano.
+- [x] **Estilos de interfaz** (Suave, Moderno, Minimalista, Clásico y Cuadrado): redondez y pareja de fuentes
+  de un toque, sobre cualquier tema; después se puede ajustar cada parte.
+- [x] `@sveltejs/kit` y `adapter-static` fijados a 2.69.1 y 3.0.10: estaban como `latest` y una instalación
+  los subía a versiones mayores nuevas.

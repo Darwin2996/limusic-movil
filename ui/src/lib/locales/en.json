@@ -558,7 +558,16 @@
 			"accent_theme": "The theme's own accent",
 			"accent_artwork_note": "While a song plays, the accent comes from its cover. Turn off Adapt colors to artwork to see this one.",
 			"preview": "Preview",
-			"preview_hint": "Sliders and the color picker show here as you drag, and the app follows when you let go."
+			"preview_hint": "Sliders and the color picker show here as you drag, and the app follows when you let go.",
+			"style": "Interface style",
+			"style_hint": "A roundness and a pair of fonts that go together, over your colour theme. Tune each on its own row below.",
+			"styles": {
+				"soft": "Soft",
+				"modern": "Modern",
+				"minimal": "Minimal",
+				"classic": "Classic",
+				"square": "Square"
+			}
 		},
 		"playback": {
 			"audio_quality": "Audio quality",

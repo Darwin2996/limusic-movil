@@ -437,7 +437,16 @@
 			"matugen": "Matugen",
 			"matugen_hint": "Toma cualquier color, acentos incluidos, de la paleta de colores que Matugen crea de tu fondo de pantalla. Crea una plantilla de Limusic en Matugen primero.",
 			"classic_player": "Diseño clásico del reproductor",
-			"classic_player_hint": "El diseño original del reproductor: La carátula sola sobre una copia desenfocada de la misma, con los detalles de la canción a la izquierda del barra de reproducción. Desactivado usa el nuevo diseño, con el título, artista y álbum debajo de la carátula e iluminado con los colores de esta."
+			"classic_player_hint": "El diseño original del reproductor: La carátula sola sobre una copia desenfocada de la misma, con los detalles de la canción a la izquierda del barra de reproducción. Desactivado usa el nuevo diseño, con el título, artista y álbum debajo de la carátula e iluminado con los colores de esta.",
+			"style": "Estilo de la interfaz",
+			"style_hint": "Una redondez y una pareja de fuentes que combinan, sobre tu tema de color. Puedes ajustar cada parte en su fila de abajo.",
+			"styles": {
+				"soft": "Suave",
+				"modern": "Moderno",
+				"minimal": "Minimalista",
+				"classic": "Clásico",
+				"square": "Cuadrado"
+			}
 		},
 		"playback": {
 			"audio_quality": "Calidad de audio",

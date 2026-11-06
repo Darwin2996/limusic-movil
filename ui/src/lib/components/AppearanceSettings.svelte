@@ -46,6 +46,9 @@
 		effective,
 		applyTheme,
 		setCustom,
+		STYLES,
+		applyStyle,
+		currentStyle,
 		syncMatugen,
 		resetCustom,
 		isDefaultCustom,
@@ -384,6 +387,11 @@
 			<h3 class={LABEL}>{t('settings.sections.interface')}</h3>
 			<div class={CARD}>
 				{@render row({
+					title: t('settings.themes.style'),
+					desc: t('settings.themes.style_hint'),
+					below: stylePicker
+				})}
+				{@render row({
 					title: t('settings.themes.roundness'),
 					desc: t('settings.themes.roundness_hint'),
 					control: radiusValue,
@@ -698,6 +706,24 @@
 		checked={appearance.artworkBackground}
 		onCheckedChange={(on) => setAppearance({ artworkBackground: on })}
 	/>{/snippet}
+
+{#snippet stylePicker()}
+	<div class="mt-3 flex flex-wrap gap-2">
+		{#each STYLES as st (st.id)}
+			<button
+				type="button"
+				onclick={() => applyStyle(st.id)}
+				aria-pressed={currentStyle() === st.id}
+				class="min-h-11 cursor-pointer border px-4 text-sm transition-colors {currentStyle() === st.id
+					? 'border-primary bg-primary/10 text-foreground'
+					: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+				style="border-radius:{Math.max(st.radius, 0.15)}rem;font-family:{st.fontHeading}"
+			>
+				{t(`settings.themes.styles.${st.id}`)}
+			</button>
+		{/each}
+	</div>
+{/snippet}
 
 {#snippet fontSelect(key: FontKey, label: string)}
 	<Select.Root

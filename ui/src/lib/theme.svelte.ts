@@ -32,6 +32,11 @@ export type ThemeId =
 	| 'caffeine'
 	| 'neon'
 	| 'breeze'
+	| 'ocean'
+	| 'sunset'
+	| 'pastel'
+	| 'forest'
+	| 'contrast'
 	| 'amoled';
 
 // `color` is just the picker swatch.
@@ -44,6 +49,11 @@ export const THEMES: Theme[] = [
 	{ id: 'caffeine', label: 'Caffeine', color: 'oklch(0.4341 0.0392 41.9938)' },
 	{ id: 'neon', label: 'Neon', color: 'oklch(0.6726 0.2904 341.4084)' },
 	{ id: 'breeze', label: 'Breeze', color: 'oklch(0.7227 0.1920 149.5793)' },
+	{ id: 'ocean', label: 'Ocean', color: 'oklch(0.56 0.15 222)' },
+	{ id: 'sunset', label: 'Sunset', color: 'oklch(0.66 0.17 38)' },
+	{ id: 'pastel', label: 'Pastel', color: 'oklch(0.68 0.11 300)' },
+	{ id: 'forest', label: 'Forest', color: 'oklch(0.52 0.12 145)' },
+	{ id: 'contrast', label: 'High contrast', color: 'oklch(0.42 0.22 264)' },
 	{ id: 'amoled', label: 'AMOLED', color: 'oklch(0 0 0)' }
 ];
 
@@ -65,6 +75,19 @@ export const FONTS: { label: string; value: string }[] = [
 	{ label: 'Montserrat', value: "'Montserrat Variable', sans-serif" },
 	{ label: 'Outfit', value: "'Outfit Variable', sans-serif" },
 	{ label: 'DM Sans', value: "'DM Sans Variable', sans-serif" },
+	{ label: 'Inter', value: "'Inter Variable', sans-serif" },
+	{ label: 'Manrope', value: "'Manrope Variable', sans-serif" },
+	{ label: 'Space Grotesk', value: "'Space Grotesk Variable', sans-serif" },
+	// Rounded
+	{ label: 'Nunito', value: "'Nunito Variable', sans-serif" },
+	{ label: 'Quicksand', value: "'Quicksand Variable', sans-serif" },
+	{ label: 'Comfortaa', value: "'Comfortaa Variable', sans-serif" },
+	// Serif, for reading and headings
+	{ label: 'Lora', value: "'Lora Variable', serif" },
+	{ label: 'Playfair Display', value: "'Playfair Display Variable', serif" },
+	// Made for low vision: letters that can't be mistaken for each other
+	{ label: 'Atkinson Hyperlegible', value: "'Atkinson Hyperlegible', sans-serif" },
+	{ label: 'JetBrains Mono', value: "'JetBrains Mono Variable', monospace" },
 	{ label: 'System', value: 'ui-sans-serif, system-ui, sans-serif' }
 ];
 
@@ -243,6 +266,33 @@ export function setCustom(patch: Partial<Custom>): void {
 	Object.assign(custom, patch);
 	apply();
 	persist();
+}
+
+/** Interface styles: a roundness and a pair of fonts that go together, applied in one tap over
+ *  whichever colour theme is on. They are ordinary custom overrides, so each part can then be
+ *  tuned on its own row, and the reset clears them like any other. */
+export type StyleId = 'soft' | 'modern' | 'minimal' | 'classic' | 'square';
+export const STYLES: { id: StyleId; radius: number; fontSans: string; fontHeading: string }[] = [
+	{ id: 'soft', radius: 1.25, fontSans: "'Nunito Variable', sans-serif", fontHeading: "'Nunito Variable', sans-serif" },
+	{ id: 'modern', radius: 0.75, fontSans: "'Inter Variable', sans-serif", fontHeading: "'Space Grotesk Variable', sans-serif" },
+	{ id: 'minimal', radius: 0.25, fontSans: "'Manrope Variable', sans-serif", fontHeading: "'Manrope Variable', sans-serif" },
+	{ id: 'classic', radius: 0.5, fontSans: "'Inter Variable', sans-serif", fontHeading: "'Playfair Display Variable', serif" },
+	{ id: 'square', radius: 0, fontSans: "'Space Grotesk Variable', sans-serif", fontHeading: "'Space Grotesk Variable', sans-serif" }
+];
+
+export function applyStyle(id: StyleId): void {
+	const style = STYLES.find((s) => s.id === id);
+	if (style) setCustom({ radius: style.radius, fontSans: style.fontSans, fontHeading: style.fontHeading });
+}
+
+/** The style the current overrides match, if any. */
+export function currentStyle(): StyleId | null {
+	return (
+		STYLES.find(
+			(s) =>
+				custom.radius === s.radius && custom.fontSans === s.fontSans && custom.fontHeading === s.fontHeading
+		)?.id ?? null
+	);
 }
 
 /** Drops the overrides. Loaded font *files* stay: they're assets, not a setting. */
