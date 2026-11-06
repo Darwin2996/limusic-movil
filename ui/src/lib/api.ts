@@ -876,6 +876,9 @@ export const setMetered = (metered: boolean) => invoke<void>('set_metered', { me
 /** Android: download a release APK and open the system installer (`INSTALL_PERMISSION` error
  *  while installs from the app still have to be allowed). */
 export const installApkUpdate = (url: string) => invoke<void>('install_apk_update', { url });
+/** How far that download has got, in bytes (`total` -1 until known). */
+export const apkUpdateProgress = () =>
+	invoke<{ received: number; total: number }>('apk_update_progress');
 /** Android: fill or empty the heart on the media notification (the current track's rating). */
 export const setNotificationLiked = (liked: boolean) =>
 	invoke<void>('set_notification_liked', { liked });

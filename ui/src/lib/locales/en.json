@@ -1352,7 +1352,10 @@
 		"update": "Update",
 		"downloading": "Downloading the update…",
 		"allow_installs": "Allow LiMusic to install apps, then tap Update again.",
-		"failed": "Couldn't download the update: {error}"
+		"failed": "Couldn't download the update: {error}",
+		"progress": "Downloading… {percent}% · {done} of {size} MB",
+		"progress_unknown": "Downloading… {done} MB",
+		"opening": "Opening the installer…"
 	},
 	"downloads": {
 		"title": "Downloads",

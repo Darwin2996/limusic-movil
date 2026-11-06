@@ -71,6 +71,7 @@
 	} from '$lib/player.svelte';
 	import {
 		androidMoveToBackground,
+		apkUpdateProgress,
 		installApkUpdate,
 		isLocalId,
 		onNotificationLike,
@@ -157,6 +158,9 @@
 	// let go. Passive throughout: the page's own scrolling is never held up for it.
 	// Android: a newer APK on the mobile port's releases, until downloaded or dismissed.
 	let apkUpdate = $state<ApkRelease | null>(null);
+	/** The update's download while it runs, in bytes (`total` -1 until known). */
+	let apkProgress = $state<{ received: number; total: number } | null>(null);
+	const mb = (bytes: number) => Math.round(bytes / 1e6);
 	/** Download it and open Android's installer; without an APK on the release, its page. */
 	async function updateApk() {
 		const release = apkUpdate;
@@ -166,7 +170,14 @@
 			apkUpdate = null;
 			return;
 		}
-		toast(t('apk_update.downloading'));
+		// Poll the download while it runs: 80 MB on a phone takes a while, and a notice that sits there
+		// unchanged reads as nothing happening.
+		apkProgress = { received: 0, total: -1 };
+		const poll = setInterval(() => {
+			apkUpdateProgress()
+				.then((p) => apkProgress && (apkProgress = p))
+				.catch(() => {});
+		}, 300);
 		try {
 			await installApkUpdate(release.apk);
 			apkUpdate = null;
@@ -177,6 +188,9 @@
 					? t('apk_update.allow_installs')
 					: t('apk_update.failed', { error })
 			);
+		} finally {
+			clearInterval(poll);
+			apkProgress = null;
 		}
 	}
 
@@ -506,10 +520,30 @@
 			transition:fly={{ y: 16, duration: 220, easing: cubicOut }}
 			class="pointer-events-auto fixed bottom-24 max-md:bottom-[calc(12rem_+_env(safe-area-inset-bottom))] left-1/2 z-[100] flex w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 items-center gap-3 rounded-lg border bg-card px-4 py-2 text-sm shadow-lg"
 		>
-			<span>{t('apk_update.available', { version: apkUpdate.version })}</span>
-			<Button size="sm" class="max-md:h-11" onclick={updateApk}>
-				{apkUpdate.apk ? t('apk_update.update') : t('apk_update.download')}
-			</Button>
+			{#if apkProgress}
+				{@const done = apkProgress.total > 0 && apkProgress.received >= apkProgress.total}
+				{@const pct = apkProgress.total > 0 ? Math.round((apkProgress.received / apkProgress.total) * 100) : null}
+				<div class="flex min-w-0 flex-1 flex-col gap-2 py-1" role="status" aria-live="polite">
+					<span>
+						{done
+							? t('apk_update.opening')
+							: pct !== null
+								? t('apk_update.progress', { percent: pct, done: mb(apkProgress.received), size: mb(apkProgress.total) })
+								: t('apk_update.progress_unknown', { done: mb(apkProgress.received) })}
+					</span>
+					<div class="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+						<div
+							class="h-full rounded-full bg-primary transition-[width] duration-300 {pct === null ? 'w-1/3 animate-pulse' : ''}"
+							style={pct !== null ? `width:${pct}%` : ''}
+						></div>
+					</div>
+				</div>
+			{:else}
+				<span>{t('apk_update.available', { version: apkUpdate.version })}</span>
+				<Button size="sm" class="max-md:h-11" onclick={updateApk}>
+					{apkUpdate.apk ? t('apk_update.update') : t('apk_update.download')}
+				</Button>
+			{/if}
 			<Button
 				variant="ghost"
 				size="icon-sm"

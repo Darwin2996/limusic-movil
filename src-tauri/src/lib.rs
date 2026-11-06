@@ -200,6 +200,25 @@ async fn install_apk_update(app: tauri::AppHandle, url: String) -> Result<(), St
     }
 }
 
+/// How far the in-app update's download has got: `{received, total}` in bytes, `total` -1 while
+/// unknown. Polled by the update notice for its progress bar.
+#[tauri::command]
+async fn apk_update_progress(app: tauri::AppHandle) -> Result<serde_json::Value, String> {
+    #[cfg(target_os = "android")]
+    {
+        let plugin = app.state::<AndroidPlayerPluginHandle>().0.clone();
+        return plugin
+            .run_mobile_plugin_async::<serde_json::Value>("apkUpdateProgress", serde_json::json!({}))
+            .await
+            .map_err(|e| e.to_string());
+    }
+    #[cfg(not(target_os = "android"))]
+    {
+        let _ = app;
+        Ok(serde_json::json!({ "received": 0, "total": -1 }))
+    }
+}
+
 /// Whether Android exempts the app from battery optimization. Always `true` elsewhere: nothing to ask.
 #[tauri::command]
 async fn android_battery_exempt(app: tauri::AppHandle) -> Result<bool, String> {
@@ -1352,6 +1371,7 @@ pub fn run() {
             delete_android_local_folder,
             android_move_to_background,
             install_apk_update,
+            apk_update_progress,
             android_battery_exempt,
             request_android_battery_exemption,
             commands::search,

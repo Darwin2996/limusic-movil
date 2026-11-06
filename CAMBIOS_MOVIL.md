@@ -304,3 +304,11 @@ Detalle y estado de cada tarea en `TAREAS_MOVIL.md`. Resumen de lo aplicado:
 - [x] El formato de invitación de Escuchar juntos se movió a `lt.svelte.ts` para usar el mismo en ambos.
 - [x] Proyecto de Supabase conectado: tablas creadas, cuentas anónimas activas y escritura sin sesión rechazada por las reglas (comprobado). Publicado en la **v1.4.2**.
 - [ ] Pendiente: probarlo entre dos móviles.
+
+## Progreso de la actualización (06/11/2026)
+
+- [x] Al pulsar **Actualizar**, el aviso muestra una barra de progreso con el porcentaje y los MB
+  descargados, y «Abriendo el instalador…» al terminar. Antes solo salía un aviso fugaz y parecía
+  que no pasaba nada. La APK lleva la cuenta de bytes (`ApkUpdater`) y la interfaz la consulta cada
+  300 ms (`apk_update_progress`). Publicado en la **v1.4.3**; la barra se ve a partir de la
+  siguiente actualización, porque quien instala la 1.4.3 desde la 1.4.2 usa todavía el aviso antiguo.

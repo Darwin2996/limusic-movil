@@ -16,6 +16,13 @@ import java.net.URL
  * An update installs over this app only when it is signed with the same key, so releases have to
  * be built with the keystore that built the installed APK (scripts/android-release.ps1). */
 object ApkUpdater {
+  /** How far the download in flight has got, for the update notice's progress bar
+   * (`apkUpdateProgress`). `total` is -1 until the server says how long the APK is. */
+  @Volatile var received = 0L
+    private set
+  @Volatile var total = -1L
+    private set
+
   /** Download [url] and open the installer. [done] gets null on success, else why it stopped:
    * `INSTALL_PERMISSION` when the user still has to allow installs from LiMusic (the settings
    * screen for that has just been opened), or the download error. Runs off the main thread. */
@@ -35,6 +42,8 @@ object ApkUpdater {
           return@Thread
         }
         val file = File(activity.cacheDir, "update.apk")
+        received = 0L
+        total = -1L
         download(url, file)
         val uri = FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", file)
         activity.startActivity(
@@ -63,7 +72,18 @@ object ApkUpdater {
           connection.disconnect()
         }
         HttpURLConnection.HTTP_OK -> {
-          connection.inputStream.use { input -> out.outputStream().use { input.copyTo(it) } }
+          total = connection.contentLengthLong
+          connection.inputStream.use { input ->
+            out.outputStream().use { output ->
+              val buffer = ByteArray(64 * 1024)
+              while (true) {
+                val n = input.read(buffer)
+                if (n < 0) break
+                output.write(buffer, 0, n)
+                received += n
+              }
+            }
+          }
           return
         }
         else -> throw IllegalStateException("HTTP ${connection.responseCode}")

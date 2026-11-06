@@ -151,6 +151,12 @@ class PlayerPlugin(private val activity: Activity) : Plugin(activity) {
     }
   }
 
+  /** How far the in-app update's download has got (`ApkUpdater`). */
+  @Command
+  fun apkUpdateProgress(invoke: Invoke) {
+    invoke.resolveObject(mapOf("received" to ApkUpdater.received, "total" to ApkUpdater.total))
+  }
+
   /** The off-screen session refresh (`GoogleSessionRefresher`): load music.youtube.com, read the
    * jar as it rotates, and drop the WebView. Driven by `refresh_session` in session.rs. */
   @Command

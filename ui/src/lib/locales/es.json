@@ -1352,7 +1352,10 @@
 		"update": "Actualizar",
 		"downloading": "Descargando la actualización…",
 		"allow_installs": "Permite que LiMusic instale apps y vuelve a pulsar Actualizar.",
-		"failed": "No se pudo descargar la actualización: {error}"
+		"failed": "No se pudo descargar la actualización: {error}",
+		"progress": "Descargando… {percent} % · {done} de {size} MB",
+		"progress_unknown": "Descargando… {done} MB",
+		"opening": "Abriendo el instalador…"
 	},
 	"downloads": {
 		"title": "Descargas",
