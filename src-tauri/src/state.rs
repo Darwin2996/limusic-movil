@@ -63,6 +63,9 @@ pub struct AppState {
     pub lt: Arc<LtSession>,
     /// mpv's on-disk audio cache dir (context/14) — wiped by the settings "Clear caches" action.
     cache_dir: std::path::PathBuf,
+    /// Android: the `quality_mobile` setting is in force because the phone is on mobile data
+    /// (`set_metered`). Off, the ordinary `quality` setting applies.
+    metered: std::sync::atomic::AtomicBool,
     /// OS media integration (MPRIS/SMTC/NowPlaying). `None` if it failed to init. context/16.
     media: Option<MediaHandle>,
     /// Discord rich presence. Fed the same track/playback changes as `media`; gated on the
@@ -487,6 +490,7 @@ impl AppState {
             orchestrator,
             lt,
             cache_dir,
+            metered: std::sync::atomic::AtomicBool::new(false),
             media,
             discord,
             lastfm,
@@ -597,7 +601,14 @@ impl AppState {
     }
 
     fn quality(&self) -> AudioQuality {
-        match self.db.get_setting("quality").as_deref() {
+        let metered = self.metered.load(std::sync::atomic::Ordering::Relaxed);
+        let mobile = metered.then(|| self.db.get_setting("quality_mobile")).flatten();
+        // "SAME" (or unset) on mobile data means: no separate choice, use the ordinary one.
+        let key = match mobile.as_deref() {
+            Some("LOW" | "AUTO" | "HIGH") => mobile,
+            _ => self.db.get_setting("quality"),
+        };
+        match key.as_deref() {
             Some("LOW") => AudioQuality::Low,
             Some("AUTO") => AudioQuality::Auto,
             _ => AudioQuality::High,
@@ -3360,6 +3371,17 @@ impl AppState {
 
     /// Clear both cache tiers (settings "Clear caches"): the SQLite URL cache + mpv's on-disk
     /// audio bytes. Best-effort on the files — the current track may re-buffer. context/14.
+    /// The phone moved between Wi-Fi and mobile data. Cached stream URLs carry the old quality,
+    /// so a real change drops them, as changing the setting itself does.
+    pub fn set_metered(&self, metered: bool) {
+        use std::sync::atomic::Ordering;
+        if self.metered.swap(metered, Ordering::Relaxed) != metered
+            && self.db.get_setting("quality_mobile").is_some_and(|q| q != "SAME")
+        {
+            self.db.clear_stream_cache();
+        }
+    }
+
     pub fn clear_caches(&self) {
         self.db.clear_stream_cache();
         // The stored PoToken is a cache too, and "clear caches" is where someone goes when

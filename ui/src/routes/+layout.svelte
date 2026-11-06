@@ -14,6 +14,7 @@
 	import { cancelRestore, restoreTo } from '$lib/scrollrestore';
 	import { onMount } from 'svelte';
 	import { getCurrentWindow } from '@tauri-apps/api/window';
+	import { onBackButtonPress } from '@tauri-apps/api/app';
 	import { fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import {
@@ -43,6 +44,9 @@
 	import ChannelPicker from '$lib/components/ChannelPicker.svelte';
 	import ListenTogether from '$lib/components/ListenTogether.svelte';
 	import LinkDialog from '$lib/components/LinkDialog.svelte';
+	import BatteryNotice from '$lib/components/BatteryNotice.svelte';
+	import BackButton from '$lib/components/BackButton.svelte';
+	import { page } from '$app/state';
 	import ImportDialog from '$lib/components/ImportDialog.svelte';
 	import { handleImportDrop, initImport } from '$lib/import.svelte';
 	import MiniPlayer from '$lib/components/MiniPlayer.svelte';
@@ -52,8 +56,8 @@
 	import CommandPalette from '$lib/components/CommandPalette.svelte';
 	import KeyboardShortcuts from '$lib/components/KeyboardShortcuts.svelte';
 	import { Button } from '$lib/components/ui/button';
-	import { auth, initApp, np, playback, prefs, ui } from '$lib/player.svelte';
-	import { isLocalId } from '$lib/api';
+	import { auth, initApp, isAndroid, np, playback, prefs, ui } from '$lib/player.svelte';
+	import { androidMoveToBackground, isLocalId, setMetered } from '$lib/api';
 	import { video } from '$lib/video.svelte';
 	import { initWin, windowCorners } from '$lib/win.svelte';
 	import { initZoom } from '$lib/zoom.svelte';
@@ -109,7 +113,39 @@
 	// step aside for it and the bar's buttons switch its tabs. Off: these are the only owner, the
 	// buttons always mean the panels, and the panels float over that view like they float over a
 	// page, so opening it costs you nothing you had open.
-	const tabbed = $derived(np.open && appearance.tabbedPlayer);
+	// Android always uses the tabbed player: it is where queue, lyrics and comments live on a phone.
+	const tabbed = $derived(np.open && (appearance.tabbedPlayer || isAndroid));
+
+	// Pages reached from another one, which a phone needs a visible way back from.
+	const hasBackBar = $derived(/^\/(artist|album|playlist|list|history)(\/|$)/.test(page.url.pathname));
+
+	/** Android's Back button (`onBackButtonPress` below): close whatever is on top, innermost first,
+	 *  and report whether anything was. Only `false` lets Back leave the page. */
+	function androidBack(): boolean {
+		// The ⋯ menus (TrackMenu, PlaylistMenu…): their full-screen backdrop is what closes them.
+		const menuBackdrop = document.querySelector<HTMLElement>('button[data-menu]');
+		if (menuBackdrop) {
+			menuBackdrop.click();
+			return true;
+		}
+		// bits-ui dialogs, popovers and selects close on Escape, which they listen for on the document.
+		const layer = document.querySelector(
+			'[data-state="open"]:is([role="dialog"], [role="alertdialog"], [role="listbox"], [role="menu"], [data-popover-content])'
+		);
+		if (layer) {
+			document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+			return true;
+		}
+		if (ui.theaterOpen) {
+			ui.theaterOpen = false;
+			return true;
+		}
+		if (np.open) {
+			np.open = false;
+			return true;
+		}
+		return false;
+	}
 	// Stepping aside hides the panels without closing them, so closing the view brings back
 	// whatever was open before it (#365).
 	const showQueue = $derived(queueOpen && !tabbed);
@@ -174,16 +210,38 @@
 		}
 		// First: it reveals the window (see initWin).
 		const teardownWin = initWin();
-		checkForUpdatesQuiet();
+		// The updater only knows the desktop releases; an Android install would be told to download one.
+		// Listening is what stops Tauri's own handling, which went straight back a page even with a
+		// menu or a dialog open over it.
+		// Wi-Fi or mobile data, for Settings ▸ Playback ▸ Quality on mobile data. Without the Network
+		// Information API the phone reads as Wi-Fi, which leaves the ordinary quality in force.
+		const connection = isAndroid
+			? (navigator as Navigator & { connection?: EventTarget & { type?: string } }).connection
+			: undefined;
+		const reportNetwork = () => setMetered(connection?.type === 'cellular').catch(() => {});
+		if (connection) {
+			reportNetwork();
+			connection.addEventListener('change', reportNetwork);
+		}
+		const backListener = isAndroid
+			? onBackButtonPress(({ canGoBack }) => {
+					if (androidBack()) return;
+					if (canGoBack) history.back();
+					else androidMoveToBackground().catch(() => {});
+				})
+			: null;
+		if (!isAndroid) checkForUpdatesQuiet();
 		// Repeat while the app stays open: ✕ hides to tray by default, so this component can stay
 		// mounted for days and a mount-only check would never see a release published in between.
-		const updateTimer = setInterval(checkForUpdatesQuiet, QUIET_INTERVAL_MS);
+		const updateTimer = isAndroid ? undefined : setInterval(checkForUpdatesQuiet, QUIET_INTERVAL_MS);
 		const teardownApp = initApp();
 		const teardownZoom = initZoom();
 		const teardownShortcuts = initShortcuts();
 		initImport();
 		return () => {
 			clearInterval(updateTimer);
+			backListener?.then((l) => l.unregister());
+			connection?.removeEventListener('change', reportNetwork);
 			teardownApp();
 			teardownWin();
 			teardownZoom();
@@ -237,8 +295,10 @@
 		{/if}
 		<div class="hidden md:block"><ResizeBorders /></div>
 		<div class="hidden md:block"><Titlebar /></div>
-		<!-- relative: the queue and lyrics panels are absolute overlays inside it (see QueuePanel). -->
-		<div class="relative flex min-h-0 flex-1">
+		<!-- relative: the queue and lyrics panels are absolute overlays inside it (see QueuePanel).
+		     The top inset keeps the pages out from under a phone's status bar, sticky headers included;
+		     the now-playing view is absolute from the top edge and pads itself. -->
+		<div class="relative flex min-h-0 flex-1 max-md:pt-[env(safe-area-inset-top)]">
 			<div class="hidden min-h-0 md:flex"><Sidebar /></div>
 			<!-- dragScroll: dragging a card up to home's Shortcuts grid has to be possible from anywhere in
 			     the feed, so aiming at the top edge scrolls this container while the drag is in flight. -->
@@ -249,6 +309,10 @@
 			>
 				<!-- Remount the current page on sign-in/out so it refetches with the new account, and on
 				     a refresh (titlebar button / F5), which drops the browse cache first. -->
+				<!-- A phone has no titlebar, so its detail pages get their back arrow here. -->
+				{#if hasBackBar}
+					<div class="flex h-14 items-center px-2 md:hidden"><BackButton /></div>
+				{/if}
 				{#key `${auth.epoch}:${ui.epoch}`}
 					{@render children()}
 				{/key}
@@ -298,17 +362,8 @@
 				/>
 			</div>
 		{/if}
-		<MobileNav
-			onToggleQueue={() => { if (tabbed) { np.tab = 'queue'; np.open = true; } else queueOpen = !queueOpen; }}
-			onToggleLyrics={() => {
-				if (tabbed) { np.tab = 'lyrics'; np.open = true; }
-				else { lyricsOpen = !lyricsOpen; if (lyricsOpen) commentsOpen = false; }
-			}}
-			onToggleComments={() => {
-				if (tabbed) { np.tab = 'comments'; np.open = true; }
-				else { commentsOpen = !commentsOpen; if (commentsOpen) lyricsOpen = false; }
-			}}
-		/>
+		<!-- The open player on a phone is full screen: its controls take the navigation's place. -->
+		{#if !(np.open && playback.now)}<MobileNav />{/if}
 	</div>
 
 	<!-- Theater mode covers everything, titlebar included, and puts the window in fullscreen for as
@@ -325,6 +380,7 @@
 	<ChannelPicker />
 	<ListenTogether />
 	<LinkDialog />
+	{#if isAndroid}<BatteryNotice />{/if}
 	<ImportDialog />
 
 	<!-- The two notification banners below run at z-[100]. Dialogs and menus sit at z-50 and portal to

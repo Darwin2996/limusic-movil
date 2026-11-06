@@ -78,7 +78,11 @@
 		></div>
 	</div>
 
-	<div class="flex items-center justify-between gap-6 px-6 pb-4 pt-10">
+	<!-- Stacked on a phone: side by side, the search field left the greeting no width at all, so it
+	     truncated to nothing and the avatar spilled over the history button. -->
+	<div
+		class="flex items-center justify-between gap-6 px-6 pb-4 pt-10 max-md:flex-col max-md:items-stretch max-md:gap-4 max-md:px-4 max-md:pt-4"
+	>
 		<div class="flex min-w-0 items-center gap-4">
 			{#if auth.account?.signedIn && auth.account.thumbnail}
 				<!-- max-width:none defeats Tailwind Preflight's `img{max-width:100%}`, which in a tight box
@@ -91,11 +95,11 @@
 					class="shrink-0 rounded-full object-cover shadow-md"
 				/>
 			{/if}
-			<h1 class="truncate font-heading text-4xl font-bold tracking-tight drop-shadow-sm">
+			<h1 class="truncate font-heading text-4xl font-bold tracking-tight drop-shadow-sm max-md:text-3xl">
 				{daypart}{auth.account?.name ? `, ${auth.account.name.split(' ')[0]}` : ''}
 			</h1>
 		</div>
-		<div class="flex shrink-0 items-center gap-2">
+		<div class="flex shrink-0 items-center gap-2 max-md:shrink">
 			<!-- Listen Together moved out of here and lives on the titlebar alone: history is the thing
 			     you reach for from the home page. -->
 			<button
@@ -106,7 +110,7 @@
 			>
 				<HugeiconsIcon icon={HistoryIcon} class="h-5 w-5" />
 			</button>
-			<form class="relative w-full max-w-xs" onsubmit={(e) => { e.preventDefault(); goSearch(); }}>
+			<form class="relative w-full max-w-xs max-md:max-w-none" onsubmit={(e) => { e.preventDefault(); goSearch(); }}>
 				<HugeiconsIcon
 					icon={Search01Icon}
 					class="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground"
@@ -117,7 +121,7 @@
 					bind:value={searchQuery}
 					placeholder={t('common.search')}
 					inputClass="rounded-full pl-9"
-					panelClass="right-0 w-[26rem]"
+					panelClass="right-0 w-[26rem] max-md:w-full"
 				/>
 			</form>
 		</div>

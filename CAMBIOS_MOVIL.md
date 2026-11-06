@@ -191,3 +191,41 @@ generados; `Cargo.lock` se restauró al terminar y no se cambiaron las dependenc
   me gusta», sin errores 400/401/403 en los registros.
 - [ ] En Android la sesión no se renueva en segundo plano (escritorio usa un WebView oculto que aquí no es
   posible). Si caduca, hay que volver a iniciar sesión; si Google mantiene su sesión, entra directamente.
+
+## Fases 1–4 de TAREAS_MOVIL.md (06/11/2026)
+
+Detalle y estado de cada tarea en `TAREAS_MOVIL.md`. Resumen de lo aplicado:
+
+- **APK optimizada:** Rust en modo release (LTO, sin símbolos) dentro del mismo paquete instalado, para
+  conservar la sesión y los datos. La librería nativa baja de ~600 MB a 72 MB y la app va más fluida.
+- **Limpieza:** Discord fuera de Android (menú, Configuración y el cliente que reintentaba cada 15 s);
+  menú Más sin entradas repetidas; icono de Last.fm; sin actualizador ni aviso de versiones de escritorio;
+  opciones de escritorio ocultas por plataforma; atajos de teclado ocultos; consulta del reproductor cada
+  1 s en pausa (antes 250 ms siempre).
+- **Botón atrás de Android:** cierra primero menús, diálogos, Teatro y el reproductor ampliado, y solo
+  después cambia de página; en la primera página manda la app a segundo plano. Usa el evento
+  `back-button` de Tauri, que era quien navegaba atrás sin mirar si había algo abierto.
+- **Listas de álbum y playlist:** por debajo de 640 px ya no se usa la tabla de escritorio (que dejaba el
+  título en 3–4 letras); en móvil me gusta/no me gusta pasan al menú y solo se ve la valoración dada.
+- **Reproductor:** plegado ocupa una fila con línea de progreso; abierto ocupa la pantalla con la barra de
+  progreso y los controles completos, sin la navegación. Gestos de deslizar en la barra plegada. En
+  Android las pestañas cola/letra/comentarios están siempre activas.
+- **Menús como hojas inferiores** con filas de 48 px; pulsación larga en canciones y tarjetas abre el menú.
+- **Barra de estado:** las páginas, el Teatro y el reproductor ampliado respetan el área segura superior e
+  inferior. Inicio apila saludo y buscador (la foto de perfil se montaba sobre Historial). «Volver
+  arriba» ya no queda detrás de la navegación. Flecha de volver en artista, álbum, playlist, lista e
+  historial.
+- **Accesibilidad:** áreas táctiles ampliadas (Estadísticas, búsquedas recientes, buscadores de lista,
+  tarjetas, Biblioteca, barra de progreso), etiquetas de la barra inferior a 12 px, píldora en la pestaña
+  activa, contraste en la cabecera de artista y en «Artistas familiares», y etiquetas de TalkBack de las
+  filas traducidas (estaban en inglés fijo).
+- **Textos:** 10 traducciones al español que faltaban; nombre «LiMusic» en el lanzador; título de sección
+  de Configuración ya no sale dos veces.
+- **Comodidad:** aviso (una vez) y ajuste para excluir LiMusic del ahorro de batería; «Calidad con datos
+  móviles» separada de la de Wi-Fi; volver a pulsar la pestaña activa sube al principio; app bloqueada en
+  vertical en teléfonos.
+- [x] Verificado en el Xiaomi: álbum, artista, Inicio, menú Más, Configuración (General y Reproducción),
+  menú de canción como hoja, botón atrás con menú/diálogo/reproductor/Teatro, reproductor ampliado y
+  Teatro sin vídeo. `pnpm run check` sin errores ni avisos y `menu.check` correcto.
+- [ ] Sin probar en el teléfono: gestos de deslizar en la barra (cambiarían la canción), la exclusión de
+  batería (es un ajuste del sistema que decides tú) y la calidad con datos móviles en una reproducción.

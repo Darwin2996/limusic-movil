@@ -241,10 +241,11 @@ pub async fn get_queue(state: St<'_>) -> Result<serde_json::Value, String> {
 /// `visitor_data`) and internal blobs (`queue_json`, `queue_index`, `queue_position`) never cross
 /// into the webview: they'd otherwise ship the login credential to the renderer on every open, and
 /// the webview can't overwrite them either.
-const UI_SETTINGS: [&str; 32] = [
+const UI_SETTINGS: [&str; 33] = [
     "volume",
     "proxy",
     "quality",
+    "quality_mobile",
     "normalize_volume",
     "enable_history",
     "disabled_stream_clients",
@@ -456,7 +457,7 @@ pub async fn set_setting(
     // Presence connects/clears the moment it's toggled — the user shouldn't have to skip a track
     // to see it take effect.
     if key == "discord_rpc" {
-        state.set_discord_enabled(value == "true");
+        state.set_discord_enabled(value == "true" && !cfg!(target_os = "android"));
     }
     // Same reasoning for the card layout: the settings tab previews it live, so the real card has
     // to follow without waiting for the next track.
@@ -673,6 +674,12 @@ pub async fn app_icon_path(app: tauri::AppHandle) -> Result<Option<String>, Stri
         let _ = scope.allow_file(real);
     }
     Ok(Some(p.to_string_lossy().into_owned()))
+}
+
+/// Android: the phone moved onto (or off) mobile data, as the UI sees it (`navigator.connection`).
+#[tauri::command]
+pub fn set_metered(state: St<'_>, metered: bool) {
+    state.set_metered(metered);
 }
 
 /// Wipe both cache tiers (URL cache + mpv on-disk audio cache). context/14.

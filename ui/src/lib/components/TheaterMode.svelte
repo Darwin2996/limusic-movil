@@ -404,13 +404,14 @@
      fullscreen. Below the dialogs and menus (z-50 and up) and the toast/update banners (z-100),
      which have to stay reachable from in here: Ctrl+K opened the palette behind this view.
      Transparent while mpv's picture shows through it; `inert:` is the fade out, when Svelte stops
-     updating classes here and the background has to come back on its own. -->
+     updating classes here and the background has to come back on its own. On a phone it keeps
+     clear of the status bar and the system navigation, which it covers edge to edge. -->
 <section
 	bind:this={view}
 	transition:fade={{ duration: 220 }}
 	onintroend={() => (settled = true)}
 	onoutrostart={leave}
-	class="fixed inset-0 z-40 flex flex-col overflow-hidden text-foreground inert:bg-background {video.hole
+	class="fixed inset-0 z-40 flex flex-col overflow-hidden text-foreground inert:bg-background max-md:pt-[env(safe-area-inset-top)] max-md:pb-[env(safe-area-inset-bottom)] {video.hole
 		? ''
 		: cinema
 			? 'bg-black'
@@ -766,7 +767,7 @@
 		bind:clientHeight={dockH}
 		onpointerenter={() => (overDock = true)}
 		onpointerleave={() => (overDock = false)}
-		class="absolute inset-x-0 bottom-0 z-10 mx-auto w-full max-w-[110rem] px-8 transition-opacity duration-500 xl:px-14 {short.current
+		class="absolute inset-x-0 bottom-0 z-10 mx-auto w-full max-w-[110rem] px-8 transition-opacity duration-500 max-md:bottom-[env(safe-area-inset-bottom)] xl:px-14 {short.current
 			? 'pt-2 pb-4'
 			: 'pt-3 pb-7'} {calm ? 'opacity-0' : ''}"
 	>

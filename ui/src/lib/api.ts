@@ -871,6 +871,14 @@ export const addLocalFolder = (path: string) => invoke<LocalLibrary>('add_local_
 /** Android SAF folder picker; the native plugin copies supported audio into app-private storage. */
 export const pickAndroidLocalFolder = () => invoke<string | null>('pick_android_local_folder');
 export const deleteAndroidLocalFolder = (path: string) => invoke<void>('delete_android_local_folder', { path });
+/** Android: tell the backend whether the phone is on mobile data (picks `quality_mobile`). */
+export const setMetered = (metered: boolean) => invoke<void>('set_metered', { metered });
+/** Android only: send the app to the background, as Back does on the first page. */
+export const androidMoveToBackground = () => invoke<void>('android_move_to_background');
+/** Whether Android exempts the app from battery optimization (always true off Android). */
+export const androidBatteryExempt = () => invoke<boolean>('android_battery_exempt');
+/** Android's own dialog to exempt the app from battery optimization; resolves with the outcome. */
+export const requestAndroidBatteryExemption = () => invoke<boolean>('request_android_battery_exemption');
 export const removeLocalFolder = (path: string) =>
 	invoke<LocalLibrary>('remove_local_folder', { path });
 

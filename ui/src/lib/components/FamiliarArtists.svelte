@@ -195,7 +195,8 @@
 								class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent"
 							></div>
 							<div class="pointer-events-none absolute inset-x-0 bottom-0 p-3.5">
-								<div class="font-heading text-xs font-semibold tracking-widest text-primary">
+								<!-- White, not the accent: a dark purple on the darkened photo was barely legible. -->
+								<div class="font-heading text-xs font-semibold tracking-widest text-white/75">
 									{rank(i)}
 								</div>
 								<div

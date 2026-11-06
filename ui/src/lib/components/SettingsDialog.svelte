@@ -70,7 +70,8 @@
 		{ id: 'data', label: t('settings.tabs.data'), hint: t('settings.tabs.data_hint'), icon: Database02Icon },
 			{ id: 'about', label: t('settings.tabs.about'), hint: t('settings.tabs.about_hint'), icon: InformationCircleIcon }
 		] as { id: TabId; label: string; hint: string; icon: typeof Settings02Icon }[]).filter(
-			(tab) => !(isAndroid && tab.id === 'hotkeys')
+			// Global hotkeys and Discord Rich Presence need a desktop: no keyboard, no Discord client.
+			(tab) => !(isAndroid && (tab.id === 'hotkeys' || tab.id === 'discord'))
 		)
 	);
 
@@ -106,6 +107,8 @@
 			toast(t('toasts.could_not_copy_link'));
 		}
 	}
+	// Android: whether the app may run unrestricted in the background (Playback tab). Read on open.
+	let batteryExempt = $state(true);
 	let loaded = $state(false);
 	let clearing = $state(false);
 	let version = $state('');
@@ -123,14 +126,18 @@
 	$effect(() => {
 		if (!ui.settingsOpen) return;
 		untrack(() => {
+			if (isAndroid) api.androidBatteryExempt().then((v) => (batteryExempt = v)).catch(() => {});
 			// Opened on a section from elsewhere (the lyrics source picker): its tab, scrolled to it
 			// once the tab has rendered. The Last.fm menu and "Edit scrobble" open a whole tab.
 			if (ui.settingsFocus === 'scrobbling') {
 				tab = 'scrobbling';
 				ui.settingsFocus = null;
 				load();
-			} else if (ui.settingsFocus === 'discord') {
+			} else if (ui.settingsFocus === 'discord' && !isAndroid) {
 				tab = 'discord';
+				ui.settingsFocus = null;
+				load();
+			} else if (ui.settingsFocus === 'discord') {
 				ui.settingsFocus = null;
 				load();
 			} else if (ui.settingsFocus) {
@@ -275,6 +282,16 @@
 		{ id: 'AUTO', key: 'settings.playback.quality_auto' },
 		{ id: 'HIGH', key: 'settings.playback.quality_high' }
 	] as const;
+
+	// Android: a separate quality for mobile data, or 'SAME' to keep using the one above.
+	const qualityMobile = $derived(settings.quality_mobile ?? 'SAME');
+	const MOBILE_QUALITIES = [{ id: 'SAME', key: 'settings.playback.quality_same' }, ...QUALITIES] as const;
+	async function setQualityMobile(q: string) {
+		settings.quality_mobile = q;
+		await api.setSetting('quality_mobile', q);
+		await api.clearCaches();
+		toast.success(t('toasts.quality_updated'));
+	}
 
 	async function setQuality(q: string) {
 		settings.quality = q;
@@ -447,10 +464,11 @@
 	control?: Snippet;
 	below?: Snippet;
 	tall?: boolean;
-	/** Hides the row below the md breakpoint — desktop-only settings that don't apply on Android. */
+	/** Hides the row on Android — desktop-only settings that don't apply there. By platform, not
+	 * width: a tablet or a phone in landscape is still Android. */
 	mobileHidden?: boolean;
 })}
-	<div class="px-4 py-3.5 {o.mobileHidden ? 'max-md:hidden' : ''}">
+	<div class="px-4 py-3.5 {o.mobileHidden && isAndroid ? 'hidden' : ''}">
 		<div class="flex {o.tall ? 'items-start' : 'items-center'} justify-between gap-6">
 			<div class="min-w-0">
 				<div class="flex items-center gap-2">
@@ -570,8 +588,9 @@
 			<!-- Content pane. min-w-0: a flex child's min-width is auto, so without it one wide row
 			     (a long font name, a long path) widens the pane and pushes every tab off the modal. -->
 			<div class="flex min-h-0 min-w-0 flex-1 flex-col">
-				<!-- h-14 also keeps the dialog's close button clear of the first row. -->
-				<header class="flex h-14 shrink-0 flex-col justify-center border-b px-6 pr-14 max-md:px-4 max-md:pr-14">
+				<!-- h-14 also keeps the dialog's close button clear of the first row. Not on a phone: the
+				     section picker above already shows this title and hint. -->
+				<header class="flex h-14 shrink-0 flex-col justify-center border-b px-6 pr-14 max-md:hidden">
 					<h2 class="text-sm font-semibold">{currentTab.label}</h2>
 					<p class="truncate text-xs text-muted-foreground">{currentTab.hint}</p>
 				</header>
@@ -591,10 +610,13 @@
 						<p class="text-sm text-muted-foreground">{t('common.loading')}</p>
 					{:else if tab === 'general'}
 						<!-- The shortcuts list has no other entry point in the chrome. Closing settings
-						     first: two stacked dialogs would trap focus in the wrong one. -->
+						     first: two stacked dialogs would trap focus in the wrong one. Not on Android:
+						     a phone has no keyboard to press them on. -->
 						<button
 							type="button"
-							class="mb-5 inline-flex items-center gap-2 rounded-full border bg-muted/50 px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+							class="mb-5 inline-flex items-center gap-2 rounded-full border bg-muted/50 px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground {isAndroid
+								? 'hidden'
+								: ''}"
 							onclick={() => {
 								ui.settingsOpen = false;
 								ui.shortcutsOpen = true;
@@ -686,6 +708,13 @@
 									desc: t('settings.playback.audio_quality_hint'),
 									control: qualityPicker
 								})}
+								{#if isAndroid}
+									{@render row({
+										title: t('settings.playback.quality_mobile'),
+										desc: t('settings.playback.quality_mobile_hint'),
+										below: qualityMobilePicker
+									})}
+								{/if}
 								{@render row({
 									title: t('settings.playback.normalize_volume'),
 									desc: t('settings.playback.normalize_volume_hint'),
@@ -697,6 +726,15 @@
 									desc: t('settings.playback.autoplay_hint'),
 									control: autoplaySwitch
 								})}
+								{#if isAndroid}
+									{@render row({
+										title: t('settings.playback.battery'),
+										desc: batteryExempt
+											? t('settings.playback.battery_hint_on')
+											: t('settings.playback.battery_hint_off'),
+										control: batteryButton
+									})}
+								{/if}
 								{@render row({
 									title: t('settings.playback.crossfade'),
 									badge: t('settings.themes.experimental'),
@@ -842,6 +880,7 @@
 							</div>
 						</section>
 
+						{#if !isAndroid}
 						<section class={GROUP}>
 							<h3 class={LABEL}>{t('settings.sections.updates')}</h3>
 							<div class={CARD}>
@@ -871,6 +910,7 @@
 								{/if}
 							</div>
 						</section>
+						{/if}
 
 						<section class={GROUP}>
 							<h3 class={LABEL}>{t('settings.sections.report')}</h3>
@@ -963,6 +1003,18 @@
 	/>{/snippet}
 {#snippet autoplaySwitch()}<Switch checked={prefs.autoplay} onCheckedChange={setAutoplay} />{/snippet}
 
+{#snippet batteryButton()}
+	<Button
+		variant="outline"
+		size="sm"
+		class="max-md:h-11"
+		disabled={batteryExempt}
+		onclick={async () => (batteryExempt = await api.requestAndroidBatteryExemption().catch(() => false))}
+	>
+		{batteryExempt ? t('settings.playback.battery_allowed') : t('settings.playback.battery_allow')}
+	</Button>
+{/snippet}
+
 {#snippet crossfadeSwitch()}<Switch checked={crossfadeOn} onCheckedChange={setCrossfade} />{/snippet}
 
 {#snippet crossfadeSlider()}
@@ -1044,6 +1096,25 @@
 				onclick={() => setQuality(q.id)}
 				aria-pressed={quality === q.id}
 				class="cursor-pointer rounded-md px-3.5 py-1.5 text-xs font-medium transition-colors {quality ===
+				q.id
+					? 'bg-background text-foreground shadow-sm'
+					: 'text-muted-foreground hover:text-foreground'}"
+			>
+				{t(q.key)}
+			</button>
+		{/each}
+	</div>
+{/snippet}
+
+{#snippet qualityMobilePicker()}
+	<!-- Under the text, not beside it: four options beside it squeezed the title onto three lines. -->
+	<div class="mt-3 flex w-fit rounded-lg bg-muted p-0.5">
+		{#each MOBILE_QUALITIES as q (q.id)}
+			<button
+				type="button"
+				onclick={() => setQualityMobile(q.id)}
+				aria-pressed={qualityMobile === q.id}
+				class="cursor-pointer rounded-md px-3.5 py-1.5 text-xs font-medium transition-colors max-md:px-2.5 max-md:py-2.5 {qualityMobile ===
 				q.id
 					? 'bg-background text-foreground shadow-sm'
 					: 'text-muted-foreground hover:text-foreground'}"

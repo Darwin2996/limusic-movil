@@ -217,8 +217,10 @@
 		{#if artist.thumbnail}
 			<img src={artist.thumbnail} alt="" class="absolute inset-0 h-full w-full object-cover" />
 		{/if}
+		<!-- Darker on a phone: the hero is short there, so the name, the counts and the bio sit high up
+		     where the lighter end of the wash left grey text unreadable on a bright photo. -->
 		<div
-			class="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/10"
+			class="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/10 max-md:via-background/85 max-md:to-background/45"
 		></div>
 		<div class="relative max-w-3xl p-4 sm:p-8">
 			<h1 class="font-heading text-4xl font-bold tracking-tight drop-shadow-lg sm:text-5xl">{artist.name}</h1>

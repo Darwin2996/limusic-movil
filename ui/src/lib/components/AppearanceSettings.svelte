@@ -32,7 +32,7 @@
 	import ColorPicker from '$lib/components/ColorPicker.svelte';
 	import ThemeMock from '$lib/components/ThemeMock.svelte';
 	import { LEVELS as ZOOM_LEVELS, setZoom, zoom } from '$lib/zoom.svelte';
-	import { playback, toast } from '$lib/player.svelte';
+	import { isAndroid, playback, toast } from '$lib/player.svelte';
 	import { thumb } from '$lib/thumb';
 	import { appIcon, chooseAppIcon } from '$lib/appicon.svelte';
 	import { t, type TranslationKey } from '$lib/i18n.svelte';
@@ -448,11 +448,13 @@
 					desc: t('settings.themes.open_player_hint'),
 					control: openPlayerSwitch
 				})}
-				{@render row({
-					title: t('settings.themes.tabbed_player'),
-					desc: t('settings.themes.tabbed_player_hint'),
-					control: tabbedSwitch
-				})}
+				{#if !isAndroid}
+					{@render row({
+						title: t('settings.themes.tabbed_player'),
+						desc: t('settings.themes.tabbed_player_hint'),
+						control: tabbedSwitch
+					})}
+				{/if}
 				{@render row({
 					title: t('settings.themes.artwork_background'),
 					desc: t('settings.themes.artwork_background_hint'),

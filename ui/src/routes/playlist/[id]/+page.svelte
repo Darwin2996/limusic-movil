@@ -33,7 +33,7 @@
 	import { Skeleton } from '$lib/components/ui/skeleton';
 	import TrackRow from '$lib/components/TrackRow.svelte';
 	import TrackColumns, { chosen, loadMyPlays, myPlays } from '$lib/components/TrackColumns.svelte';
-	import { availableColumns, fitColumns } from '$lib/trackcolumns';
+	import { availableColumns, tableColumns } from '$lib/trackcolumns';
 	import TrackSelectionBar from '$lib/components/TrackSelectionBar.svelte';
 	import TrackSelectButton from '$lib/components/TrackSelectButton.svelte';
 	import { trackSelection } from '$lib/selection.svelte';
@@ -276,7 +276,7 @@
 		availableColumns(pl?.items ?? []).filter((c) => c !== 'added' || !pl?.collaborative)
 	);
 	let listPx = $state(0);
-	const cols = $derived(fitColumns(availCols.filter((c) => chosen.list.includes(c)), listPx));
+	const cols = $derived(tableColumns(availCols.filter((c) => chosen.list.includes(c)), listPx));
 
 	// A sort has to cover the whole playlist, not the pages scrolled so far, so pull the rest in.
 	// Stops on a failed page (`moreError`), on navigation, and on any pass that made no progress.
@@ -1239,9 +1239,9 @@
 				aria-busy={resorting}
 			>
 				{#if shown.length}
-					<!-- Its width decides which columns fit (`fitColumns`). -->
+					<!-- Its width decides which columns fit, and whether a table fits at all (`tableColumns`). -->
 					<div bind:clientWidth={listPx}>
-						<TrackColumns available={availCols} columns={cols} selecting={selection.active} />
+						{#if cols}<TrackColumns available={availCols} columns={cols} selecting={selection.active} />{/if}
 						<!-- The padding stands in for the rows outside the window, so the scrollbar is the
 						     length of the whole playlist even though only ~30 rows exist.
 						     data-rows: what the scroller measures row 0's position from. -->

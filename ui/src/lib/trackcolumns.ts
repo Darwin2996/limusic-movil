@@ -58,6 +58,17 @@ const MIN_PX: Partial<Record<TrackColumn, number>> = { album: 640, mine: 704, ad
 export const fitColumns = (cols: TrackColumn[], px: number): TrackColumn[] =>
 	cols.filter((c) => px >= (MIN_PX[c] ?? 0));
 
+/** Below this width (40rem) a list drops the table: `END` alone is 11rem, which left a phone's title
+ *  three or four letters. The rows fall back to their one-column layout and the header goes. */
+const TABLE_MIN_PX = 640;
+
+/** The columns for a list `px` wide, or `undefined` when it is too narrow for a table at all. Before
+ *  the list is measured (`px` 0) the window's width stands in, so a phone never paints the table. */
+export const tableColumns = (cols: TrackColumn[], px: number): TrackColumn[] | undefined => {
+	const width = px || (typeof window === 'undefined' ? TABLE_MIN_PX : window.innerWidth);
+	return width < TABLE_MIN_PX ? undefined : fitColumns(cols, width);
+};
+
 /**
  * The columns this list can fill. An album page leaves Album out: every row would repeat the title
  * above it.

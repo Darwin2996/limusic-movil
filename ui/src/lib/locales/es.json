@@ -109,6 +109,7 @@
 		"theater_mode": "Modo teatro",
 		"playing_from": "Reproduciendo desde",
 		"exit_theater": "Salir del modo teatro",
+		"fullscreen_video": "Vídeo a pantalla completa",
 		"now_playing": "Reproduciendo ahora",
 		"autoplay_notice": "La reproducción automática está activada",
 		"clear_queue": "Vaciar cola",
@@ -143,6 +144,7 @@
 		"add_to_playlist": "Añadir a playlist",
 		"pin_to_top": "Fijar arriba",
 		"unpin": "Desfijar",
+		"scroll_to_end": "Ir al final",
 		"block_artist": "Bloquear artista",
 		"remove_from_this_playlist": "Quitar de esta playlist",
 		"back_to": "Volver a {title}",
@@ -156,7 +158,8 @@
 		"song": "Canción",
 		"video": "Video",
 		"comments": "Comentarios",
-		"up_next": "A continuación"
+		"up_next": "A continuación",
+		"exit_fullscreen_video": "Salir del vídeo a pantalla completa"
 	},
 	"home": {
 		"good_morning": "Buenos días",
@@ -280,7 +283,10 @@
 		"suggestions_failed": "No se pudieron cargar sugerencias.",
 		"suggestion_add": "Añadir {title} a esta playlist",
 		"suggestion_added": "Añadida",
-		"saved_in_count": "{count} playlists"
+		"suggestions_hide": "Ocultar",
+		"suggestions_show": "Mostrar",
+		"saved_in_count": "{count} playlists",
+		"suggestions_hidden": "Sugerencias ocultas. Puedes volver a mostrarlas desde el final de cualquiera de tus playlists."
 	},
 	"local": {
 		"scanning": "Escaneando carpeta...",
@@ -349,6 +355,8 @@
 			"language": "Idioma de la interfaz",
 			"language_hint": "Selecciona el idioma de visualización de la interfaz.",
 			"shortcuts_hint": "Abre los atajos de teclado con {key}",
+			"play_on_start": "Reanudar la reproducción al abrir",
+			"play_on_start_hint": "Empieza a reproducir tu última cola al abrir Limusic.",
 			"autostart": "Iniciar al arrancar",
 			"autostart_hint": "Iniciar automáticamente Limusic cuando se encienda el sistema.",
 			"close_to_tray": "Minimizar a la bandeja del sistema",
@@ -424,6 +432,8 @@
 			"preview_hint": "Los controles deslizantes y el selector de color aparecen aquí a medida que arrastras, y la aplicación responde cuando sueltas.",
 			"blur_playlist_header": "Desenfocar cabecera de playlist",
 			"blur_playlist_header_hint": "Muestra la portada de la playlist desenfocada detrás de la cabecera. Suaviza las portadas que se ven pixeladas al estirarse a todo lo ancho.",
+			"now_playing_pill": "Botón de canción actual",
+			"now_playing_pill_hint": "Muestra un botón para volver a la canción que suena cuando queda fuera de la vista, en una playlist o en la cola.",
 			"matugen": "Matugen",
 			"matugen_hint": "Toma cualquier color, acentos incluidos, de la paleta de colores que Matugen crea de tu fondo de pantalla. Crea una plantilla de Limusic en Matugen primero.",
 			"classic_player": "Diseño clásico del reproductor",
@@ -435,8 +445,16 @@
 			"quality_low": "Baja",
 			"quality_auto": "Automática",
 			"quality_high": "Alta",
+			"quality_mobile": "Calidad con datos móviles",
+			"quality_mobile_hint": "Se usa en lugar de la anterior mientras el móvil está con datos móviles.",
+			"quality_same": "Igual",
 			"autoplay": "Reproducción automática de canciones similares",
 			"autoplay_hint": "Reproducir continuamente pistas recomendadas cuando termine la cola.",
+			"battery": "Reproducción en segundo plano",
+			"battery_hint_off": "Android puede cortar la música cuando LiMusic está en segundo plano. Permite que funcione sin restricciones.",
+			"battery_hint_on": "LiMusic puede seguir sonando en segundo plano.",
+			"battery_allow": "Permitir",
+			"battery_allowed": "Permitido",
 			"prevent_duplicates": "Evitar canciones duplicadas en la cola",
 			"prevent_duplicates_hint": "Evita añadir canciones que ya están en la cola actual.",
 			"sticky_shuffle": "Mantener aleatorio entre colas",
@@ -840,6 +858,8 @@
 		"seek": "Buscar posición",
 		"volume": "Volumen",
 		"track_options": "Opciones de la pista",
+		"play_track": "Reproducir {title}",
+		"add_track_to_session": "Añadir {title} a la cola de la sesión",
 		"playlist_options": "Opciones de la playlist",
 		"clear_search": "Limpiar búsqueda",
 		"search_preview": "Vista previa de búsqueda",
@@ -1299,5 +1319,11 @@
 		"plays": "Reproducciones",
 		"mine": "Tus reproducciones",
 		"duration": "Duración"
+	},
+	"battery_notice": {
+		"title": "Que la música no se corte",
+		"body": "Móviles como los Xiaomi cierran las apps en segundo plano para ahorrar batería, y eso corta la música. Permite que LiMusic funcione en segundo plano para que siga sonando con la pantalla apagada.",
+		"allow": "Permitir",
+		"later": "Ahora no"
 	}
 }

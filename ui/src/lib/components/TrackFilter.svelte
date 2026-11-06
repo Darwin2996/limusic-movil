@@ -33,8 +33,9 @@
 	}: { value?: string; placeholder?: string; onfocus?: () => void } = $props();
 </script>
 
+<!-- On a phone the field itself is the full 44px: the pill around a 20px input was mostly dead. -->
 <div
-	class="flex items-center gap-2 rounded-full border bg-background/80 py-1.5 pl-3 pr-2 shadow-sm backdrop-blur focus-within:border-accent"
+	class="flex items-center gap-2 rounded-full border bg-background/80 py-1.5 pl-3 pr-2 shadow-sm backdrop-blur focus-within:border-accent max-md:py-0"
 >
 	<HugeiconsIcon
 		icon={SearchList01Icon}
@@ -46,12 +47,12 @@
 		{placeholder}
 		aria-label={placeholder}
 		{onfocus}
-		class="w-48 min-w-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground max-md:w-full"
+		class="w-48 min-w-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground max-md:h-11 max-md:w-full"
 		onkeydown={(e) => e.key === 'Escape' && (value = '')}
 	/>
 	<!-- Holds its 1rem either way, so typing doesn't resize the box. -->
 	<button
-		class="w-4 shrink-0 cursor-pointer text-muted-foreground transition hover:text-foreground"
+		class="w-4 shrink-0 cursor-pointer text-muted-foreground transition hover:text-foreground max-md:flex max-md:h-11 max-md:w-9 max-md:items-center max-md:justify-center"
 		class:invisible={!value}
 		onclick={() => (value = '')}
 		aria-label={t('a11y.clear_search')}

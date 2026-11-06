@@ -535,14 +535,15 @@
 </div>
 
 {#if scrolled}
-	<!-- Clears the player bar when there is one. z-10 keeps it under the queue/lyrics overlays. -->
+	<!-- Clears the player bar when there is one, and on a phone the bottom navigation too, at the
+	     same offsets as the playlist suggestions button. z-10 keeps it under the queue/lyrics overlays. -->
 	<button
 		transition:fade={{ duration: 150 }}
 		onclick={() => scroller?.scrollTo({ top: 0, behavior: 'smooth' })}
 		aria-label={t('a11y.back_to_top')}
 		class="fixed right-6 z-10 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-110 {playback.now
-			? 'bottom-24'
-			: 'bottom-6'}"
+			? 'bottom-24 max-md:bottom-[calc(16rem_+_env(safe-area-inset-bottom))]'
+			: 'bottom-6 max-md:bottom-[calc(5rem_+_env(safe-area-inset-bottom))]'}"
 	>
 		<HugeiconsIcon icon={ArrowUpBigIcon} class="h-5 w-5" />
 	</button>

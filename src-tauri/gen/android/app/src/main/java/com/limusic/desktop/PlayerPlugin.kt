@@ -2,10 +2,13 @@ package com.limusic.desktop
 
 import android.app.Activity
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.database.Cursor
 import android.provider.DocumentsContract
 import android.net.Uri
+import android.os.PowerManager
+import android.provider.Settings
 import android.provider.OpenableColumns
 import java.io.File
 import java.io.FileOutputStream
@@ -126,6 +129,45 @@ class PlayerPlugin(private val activity: Activity) : Plugin(activity) {
       ?.takeIf { result.resultCode == Activity.RESULT_OK && it.isNotBlank() }
     invoke.resolveObject(mapOf("cookie" to cookie))
   }
+
+  /** Back on the first page: leave the app the way Android's own Back does, to the background,
+   * rather than finishing the activity. The page handles Back itself (`onBackButtonPress`), so
+   * Tauri no longer does this. */
+  @Command
+  fun moveToBackground(invoke: Invoke) {
+    activity.moveTaskToBack(true)
+    invoke.resolve()
+  }
+
+  /** Whether Android exempts LiMusic from battery optimization. Without it, aggressive skins (MIUI,
+   * One UI…) kill the process in the background and the music stops. */
+  @Command
+  fun batteryExempt(invoke: Invoke) {
+    invoke.resolveObject(mapOf("exempt" to isBatteryExempt()))
+  }
+
+  /** Android's own "let this app run in the background" dialog; resolves with the outcome. */
+  @Command
+  fun requestBatteryExemption(invoke: Invoke) {
+    if (isBatteryExempt()) {
+      invoke.resolveObject(mapOf("exempt" to true))
+      return
+    }
+    val intent = Intent(
+      Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+      Uri.parse("package:${activity.packageName}"),
+    )
+    startActivityForResult(invoke, intent, "onBatteryExemptionResult")
+  }
+
+  @ActivityCallback
+  fun onBatteryExemptionResult(invoke: Invoke, result: ActivityResult) {
+    invoke.resolveObject(mapOf("exempt" to isBatteryExempt()))
+  }
+
+  private fun isBatteryExempt(): Boolean =
+    (activity.getSystemService(Context.POWER_SERVICE) as PowerManager)
+      .isIgnoringBatteryOptimizations(activity.packageName)
 
   /** Android's folder picker returns a SAF content URI, which std::fs and the Rust tag reader
    * cannot traverse. Import supported audio files into app-private storage so the existing local

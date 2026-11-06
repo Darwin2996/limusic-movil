@@ -49,13 +49,13 @@
 <div class="mt-4 flex flex-wrap items-center gap-2 text-sm">
 	<label class="flex min-h-11 items-center gap-2 rounded-lg border px-3">
 		<span>{t('stats.day_select')}</span>
-		<select class="max-w-36 bg-transparent" bind:value={selectedDay} aria-label={t('stats.day_select')}>
+		<select class="max-w-36 self-stretch bg-transparent" bind:value={selectedDay} aria-label={t('stats.day_select')}>
 			{#each ROWS as d (d)}<option value={d}>{longDay.format(day(d))}</option>{/each}
 		</select>
 	</label>
 	<label class="flex min-h-11 items-center gap-2 rounded-lg border px-3">
 		<span>{t('stats.hour_select')}</span>
-		<select class="bg-transparent" bind:value={selectedHour} aria-label={t('stats.hour_select')}>
+		<select class="self-stretch bg-transparent" bind:value={selectedHour} aria-label={t('stats.hour_select')}>
 			{#each { length: 24 } as _, h (h)}<option value={h}>{hourFmt.format(day(0, h))}</option>{/each}
 		</select>
 	</label>

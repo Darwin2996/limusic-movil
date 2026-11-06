@@ -17,7 +17,7 @@
     } from "@hugeicons/core-free-icons";
     import TrackRow from "$lib/components/TrackRow.svelte";
     import TrackColumns, { chosen } from "$lib/components/TrackColumns.svelte";
-    import { availableColumns, fitColumns } from "$lib/trackcolumns";
+    import { availableColumns, tableColumns } from "$lib/trackcolumns";
     import TrackSelectionBar from "$lib/components/TrackSelectionBar.svelte";
     import TrackSelectButton from "$lib/components/TrackSelectButton.svelte";
     import { trackSelection } from "$lib/selection.svelte";
@@ -73,7 +73,7 @@
     // The optional columns (`TrackColumns`). Album is never one here: every row would repeat the title.
     const availCols = $derived(availableColumns(album?.items ?? [], true));
     let listPx = $state(0);
-    const cols = $derived(fitColumns(availCols.filter((c) => chosen.list.includes(c)), listPx));
+    const cols = $derived(tableColumns(availCols.filter((c) => chosen.list.includes(c)), listPx));
     // A local album has no YouTube playlist behind it: nothing to save or add to a playlist.
     // Playing, shuffling and Shortcuts all work exactly the same.
     const isLocal = $derived(api.isLocalId(id));
@@ -486,9 +486,9 @@
     <div class="content-in p-6 pt-2">
         <TrackSelectionBar {selection} from={album.title} />
         {#if shown.length}
-            <!-- Its width decides which columns fit (`fitColumns`). -->
+            <!-- Its width decides which columns fit, and whether a table fits at all (`tableColumns`). -->
             <div bind:clientWidth={listPx}>
-                <TrackColumns available={availCols} columns={cols} selecting={selection.active} />
+                {#if cols}<TrackColumns available={availCols} columns={cols} selecting={selection.active} />{/if}
                 {#each shown as item, i (JSON.stringify([item.video_id, i]))}
                     <TrackRow
                         song={item}

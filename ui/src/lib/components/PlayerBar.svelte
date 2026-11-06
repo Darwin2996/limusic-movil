@@ -122,8 +122,38 @@
 	// Anywhere on the bar that isn't a control opens (or closes) the now-playing view: the bar is
 	// what's left of it once it's minimised, so it's the way back in. Deliberately no pointer
 	// cursor, because this is the whole bar, not a button, and every real button keeps its own click.
+	// Swipes on the collapsed bar, touch only: sideways changes track, up opens the player. A swipe
+	// also eats the click it ends in, or lifting the finger would toggle the player too.
+	let swipeFrom: { x: number; y: number } | null = null;
+	let swiped = false;
+	function onSwipeStart(e: PointerEvent) {
+		swiped = false;
+		swipeFrom = e.pointerType === 'touch' && !np.open ? { x: e.clientX, y: e.clientY } : null;
+	}
+	function onSwipeEnd(e: PointerEvent) {
+		if (!swipeFrom) return;
+		const dx = e.clientX - swipeFrom.x;
+		const dy = e.clientY - swipeFrom.y;
+		swipeFrom = null;
+		if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+			swiped = true;
+			if (dx < 0) api.nextTrack();
+			else api.prevTrack();
+		} else if (dy < -50 && Math.abs(dy) > Math.abs(dx) * 1.5) {
+			swiped = true;
+			np.open = true;
+		}
+	}
+
 	function onBarClick(e: MouseEvent) {
+		if (swiped) {
+			swiped = false;
+			return;
+		}
 		if (pressedControl || isControl(e.target)) return;
+		// Open on a phone, the bar is the full player's controls: a tap between them closing it
+		// would be a surprise. The player's own minimize button and Back close it there.
+		if (np.open && window.matchMedia('(max-width: 767px)').matches) return;
 		np.open = !np.open;
 	}
 </script>
@@ -132,13 +162,25 @@
      stays a plain region rather than becoming a focusable control wrapping every other control. -->
 <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions, a11y_no_noninteractive_element_interactions -->
 <footer
-	onpointerdown={(e) => (pressedControl = isControl(e.target))}
+	onpointerdown={(e) => ((pressedControl = isControl(e.target)), onSwipeStart(e))}
+	onpointerup={onSwipeEnd}
 	onclick={onBarClick}
- class="flex items-center gap-2 border-t bg-card px-2 py-2.5 sm:gap-4 sm:px-4 sm:py-3 max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:grid-rows-[auto_auto] max-md:gap-x-2 max-md:gap-y-0 max-md:px-3 max-md:py-1"
+ class="relative flex items-center gap-2 border-t bg-card px-2 py-2.5 sm:gap-4 sm:px-4 sm:py-3 max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-2 max-md:gap-y-0 max-md:px-3 {np.open
+		? 'max-md:grid-rows-[auto_auto] max-md:border-t-0 max-md:bg-transparent max-md:pb-[calc(env(safe-area-inset-bottom)+0.75rem)]'
+		: 'max-md:py-2'}"
 >
+	<!-- On a phone the bar is two things. Collapsed: one row (the track, play/pause and next) under a
+	     hairline of progress, and tapping it opens the player. Open: the player above shows the track,
+	     so the bar keeps only the seek bar and the full transport, as a full-screen player's controls. -->
+	{#if !np.open}
+		<div
+			class="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-primary md:hidden"
+			style="width:{playback.duration ? (shownPosition / playback.duration) * 100 : 0}%"
+		></div>
+	{/if}
 	<!-- Now playing. data-ctx: right-clicking the cover or the title opens the ⋮ menu for the track
 	     that's playing (not the buttons beside them — those keep their own meaning). -->
-	<div class="flex min-w-0 flex-1 items-center gap-3 max-md:col-start-1 max-md:row-start-1 max-md:gap-2" data-ctx>
+	<div class="flex min-w-0 flex-1 items-center gap-3 max-md:col-start-1 max-md:row-start-1 max-md:gap-2 {np.open ? 'max-md:hidden' : ''}" data-ctx>
 		{#key playback.now?.videoId}
 			{#if playback.now?.thumbnail}
 				<img
@@ -260,26 +302,29 @@
 		{/if}
 	</div>
 
-	<!-- On phones the rest of the footer is condensed, so give the full player a visible,
-	     labelled entry point instead of relying on tapping an empty strip of the bar. -->
-	<Button
-		variant="ghost"
-		size="icon-sm"
-		class="hidden max-md:size-10 max-md:inline-flex max-md:col-start-2 max-md:row-start-1"
-		onclick={() => (np.open = !np.open)}
-		aria-label={np.open ? t('player.minimize_player') : t('player.open_player')}
-		aria-expanded={np.open}
-	>
-		<HugeiconsIcon icon={ArrowUp01Icon} altIcon={ArrowDown01Icon} showAlt={np.open} class="h-5 w-5" />
-	</Button>
+	<!-- The labelled way into the full player on a phone, for TalkBack: the visible one is tapping
+	     the track. Open, the player's own minimize button takes over. -->
+	{#if !np.open}
+		<button
+			type="button"
+			class="sr-only"
+			onclick={() => (np.open = true)}
+			aria-label={t('player.open_player')}
+			aria-expanded={false}
+		></button>
+	{/if}
 
 	<!-- Transport -->
 	<div class="flex flex-[1.5] flex-col items-center gap-1 max-md:contents">
-		<div class="flex items-center gap-1 max-md:col-span-2 max-md:row-start-3 max-md:justify-center">
+		<div
+			class="flex items-center gap-1 {np.open
+				? 'max-md:col-span-2 max-md:row-start-2 max-md:justify-center max-md:gap-4'
+				: 'max-md:col-start-2 max-md:row-start-1 max-md:gap-0'}"
+		>
 			<Button
 				variant="ghost"
 				size="icon-sm"
-				class="inline-flex max-md:size-10"
+				class="inline-flex max-md:size-10 {np.open ? '' : 'max-md:hidden'}"
 				onclick={() => api.toggleShuffle()}
 				aria-label={t('player.shuffle')}
 				aria-pressed={shuffleOn}
@@ -289,13 +334,13 @@
 					class="h-4 w-4 {shuffleOn ? 'text-primary' : 'text-muted-foreground'}"
 				/>
 			</Button>
-			<Button variant="ghost" size="icon-sm" class="inline-flex max-md:size-10" onclick={() => api.prevTrack()} aria-label={t('player.previous')}>
+			<Button variant="ghost" size="icon-sm" class="inline-flex max-md:size-10 {np.open ? '' : 'max-md:hidden'}" onclick={() => api.prevTrack()} aria-label={t('player.previous')}>
 				<HugeiconsIcon icon={PreviousIcon} class="h-5 w-5" />
 			</Button>
 			<Button
 				variant="default"
 				size="icon"
-				class="rounded-full max-md:size-11"
+				class="rounded-full {np.open ? 'max-md:size-14' : 'max-md:size-11'}"
 				onclick={() => api.togglePause()}
 				aria-label={playback.paused ? t('player.play') : t('player.pause')}
 			>
@@ -314,7 +359,7 @@
 			<Button
 				variant="ghost"
 				size="icon-sm"
-				class="inline-flex max-md:size-10"
+				class="inline-flex max-md:size-10 {np.open ? '' : 'max-md:hidden'}"
 				onclick={cycleRepeat}
 				aria-label={t('player.repeat_state', {
 					state: repeat === 'off' ? t('player.repeat_off') : repeat === 'one' ? t('player.repeat_one') : t('player.repeat_all')
@@ -330,7 +375,7 @@
 				/>
 			</Button>
 		</div>
-		<div class="flex w-full max-w-md items-center gap-2 text-xs text-muted-foreground max-md:col-span-2 max-md:row-start-2 max-md:w-full max-md:max-w-none max-md:gap-1">
+		<div class="flex w-full max-w-md items-center gap-2 text-xs text-muted-foreground max-md:col-span-2 max-md:row-start-1 max-md:w-full max-md:max-w-none max-md:gap-1 {np.open ? 'max-md:py-2' : 'max-md:hidden'}">
 			<!-- Fixed slots, or the seek bar twitches as the position ticks: DM Sans has no tabular
 			     figures, so `tabular-nums` does nothing there (#463). -->
 			<span class="min-w-[5ch] text-right tabular-nums max-md:inline">{fmt(shownPosition)}</span>

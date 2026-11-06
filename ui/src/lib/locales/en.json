@@ -568,8 +568,16 @@
 			"quality_low": "Low",
 			"quality_auto": "Auto",
 			"quality_high": "High",
+			"quality_mobile": "Quality on mobile data",
+			"quality_mobile_hint": "Used instead of the one above while the phone is on mobile data.",
+			"quality_same": "Same",
 			"autoplay": "Autoplay similar songs",
 			"autoplay_hint": "Continuously play recommended tracks when the queue finishes.",
+			"battery": "Background playback",
+			"battery_hint_off": "Android may stop the music when LiMusic is in the background. Allow it to run unrestricted.",
+			"battery_hint_on": "LiMusic can keep playing in the background.",
+			"battery_allow": "Allow",
+			"battery_allowed": "Allowed",
 			"crossfade": "Crossfade",
 			"crossfade_hint": "Fade the end of each track into the start of the next one. Runs a second audio decoder while tracks overlap, so it uses a little more memory.",
 			"crossfade_lt_paused": "Paused while you are in a Listen Together room: an overlap of two tracks cannot be kept in sync with everyone else.",
@@ -972,6 +980,8 @@
 		"seek": "Seek",
 		"volume": "Volume",
 		"track_options": "Track options",
+		"play_track": "Play {title}",
+		"add_track_to_session": "Add {title} to the session queue",
 		"playlist_options": "Playlist options",
 		"clear_search": "Clear search",
 		"search_preview": "Search preview",
@@ -1309,5 +1319,11 @@
 			"not_found": "Couldn’t find that on YouTube Music.",
 			"cooldown": "YouTube Music asked Limusic to slow down, so imports are paused until {time}. Everything found so far is saved."
 		}
+	},
+	"battery_notice": {
+		"title": "Keep the music playing",
+		"body": "Phones like Xiaomi close apps in the background to save battery, which stops the music. Allow LiMusic to run in the background so it keeps playing with the screen off.",
+		"allow": "Allow",
+		"later": "Not now"
 	}
 }

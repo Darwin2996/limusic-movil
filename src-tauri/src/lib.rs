@@ -129,6 +129,54 @@ async fn pick_android_local_folder(app: tauri::AppHandle) -> Result<Option<Strin
     }
 }
 
+/// Send the app to the background, as Android's Back does on the first page (the page handles
+/// Back itself on Android, see `onBackButtonPress` in +layout.svelte).
+#[tauri::command]
+async fn android_move_to_background(app: tauri::AppHandle) -> Result<(), String> {
+    #[cfg(target_os = "android")]
+    {
+        let plugin = app.state::<AndroidPlayerPluginHandle>().0.clone();
+        return plugin
+            .run_mobile_plugin_async::<()>("moveToBackground", serde_json::json!({}))
+            .await
+            .map_err(|e| e.to_string());
+    }
+    #[cfg(not(target_os = "android"))]
+    {
+        let _ = app;
+        Ok(())
+    }
+}
+
+/// Whether Android exempts the app from battery optimization. Always `true` elsewhere: nothing to ask.
+#[tauri::command]
+async fn android_battery_exempt(app: tauri::AppHandle) -> Result<bool, String> {
+    android_battery("batteryExempt", app).await
+}
+
+/// Open Android's dialog to exempt the app from battery optimization; resolves with the outcome.
+#[tauri::command]
+async fn request_android_battery_exemption(app: tauri::AppHandle) -> Result<bool, String> {
+    android_battery("requestBatteryExemption", app).await
+}
+
+async fn android_battery(command: &str, app: tauri::AppHandle) -> Result<bool, String> {
+    #[cfg(target_os = "android")]
+    {
+        let plugin = app.state::<AndroidPlayerPluginHandle>().0.clone();
+        let result = plugin
+            .run_mobile_plugin_async::<serde_json::Value>(command, serde_json::json!({}))
+            .await
+            .map_err(|e| e.to_string())?;
+        return Ok(result.get("exempt").and_then(serde_json::Value::as_bool).unwrap_or(true));
+    }
+    #[cfg(not(target_os = "android"))]
+    {
+        let _ = (command, app);
+        Ok(true)
+    }
+}
+
 #[tauri::command]
 async fn delete_android_local_folder(
     app: tauri::AppHandle,
@@ -963,8 +1011,10 @@ pub fn run() {
             taskbar::init(&handle);
 
             // Discord rich presence — off unless the user opted in; parks on its channel until then.
+            // Never on Android: there is no Discord client to reach, so it only retried forever.
             let discord = discord::spawn(
-                db.get_setting("discord_rpc").as_deref() == Some("true"),
+                !cfg!(target_os = "android")
+                    && db.get_setting("discord_rpc").as_deref() == Some("true"),
                 discord::RpcConfig::parse(db.get_setting("discord_rpc_config").as_deref()),
             );
 
@@ -1248,6 +1298,9 @@ pub fn run() {
         .invoke_handler(only_ui(tauri::generate_handler![
             pick_android_local_folder,
             delete_android_local_folder,
+            android_move_to_background,
+            android_battery_exempt,
+            request_android_battery_exemption,
             commands::search,
             commands::search_all,
             commands::search_suggestions,
@@ -1288,6 +1341,7 @@ pub fn run() {
             commands::reset_global_hotkeys,
             commands::get_stream_clients,
             commands::clear_caches,
+            commands::set_metered,
             commands::set_app_icon,
             commands::app_icon_path,
             commands::get_account,
@@ -1614,10 +1668,15 @@ fn spawn_android_player_bridge(
     monitor: player::PlayerMonitor,
 ) {
     tauri::async_runtime::spawn(async move {
-        use tokio::time::{interval, MissedTickBehavior};
+        use tokio::time::{sleep, Instant};
 
-        let mut poll = interval(Duration::from_millis(250));
-        poll.set_missed_tick_behavior(MissedTickBehavior::Skip);
+        // Fast while audio plays or is about to (position, track end); slow when paused or idle,
+        // where only a notification next/previous can arrive and a second's delay is fine.
+        const ACTIVE: Duration = Duration::from_millis(250);
+        const IDLE: Duration = Duration::from_secs(1);
+        let mut period = ACTIVE;
+        let next_poll = sleep(ACTIVE);
+        tokio::pin!(next_poll);
         loop {
             tokio::select! {
                 command = commands.recv() => {
@@ -1628,15 +1687,21 @@ fn spawn_android_player_bridge(
                     {
                         monitor.error(error.to_string());
                     }
+                    // A command usually changes the state: look again soon.
+                    next_poll.as_mut().reset(Instant::now() + ACTIVE);
                 }
-                _ = poll.tick() => {
+                _ = &mut next_poll => {
                     match plugin
                         .run_mobile_plugin_async::<player::PlayerSnapshot>("poll", serde_json::json!({}))
                         .await
                     {
-                        Ok(snapshot) => monitor.apply(snapshot),
+                        Ok(snapshot) => {
+                            period = if snapshot.is_playing || snapshot.play_when_ready { ACTIVE } else { IDLE };
+                            monitor.apply(snapshot);
+                        }
                         Err(error) => tracing::debug!(%error, "Android player status poll failed"),
                     }
+                    next_poll.as_mut().reset(Instant::now() + period);
                 }
             }
         }

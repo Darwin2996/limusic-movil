@@ -1042,7 +1042,7 @@ input[type='range'].range:active::-webkit-slider-thumb {
    the hit area taller, and keep the thumb visible so the user can see what they're dragging. */
 @media (max-width: 767px) {
 	input[type='range'].range {
-		height: 28px;
+		height: 40px;
 	}
 	input[type='range'].range::-webkit-slider-runnable-track {
 		height: 8px;
@@ -1050,6 +1050,19 @@ input[type='range'].range:active::-webkit-slider-thumb {
 	input[type='range'].range::-webkit-slider-thumb {
 		margin-top: -2px;
 		opacity: 1;
+	}
+}
+
+/* A phone's menus open as bottom sheets (`fitMenu` in lib/menu.ts sets `data-sheet`): their rows
+   get a finger-sized height instead of the desktop's 32px. */
+@media (max-width: 767px) {
+	[data-sheet] > button,
+	[data-sheet] > a {
+		min-height: 3rem;
+	}
+	/* The menu's full-screen backdrop: dimmed, so the sheet reads as on top of the page. */
+	button[data-menu] {
+		background: rgb(0 0 0 / 0.45);
 	}
 }
 

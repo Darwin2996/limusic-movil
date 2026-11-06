@@ -201,7 +201,7 @@
 			<Button
 				variant="outline"
 				size="sm"
-				class="gap-2"
+				class="gap-2 max-md:h-11"
 				title={t('import.button_tooltip')}
 				onclick={() => openImport()}
 			>
@@ -209,7 +209,7 @@
 				<ExperimentalBadge />
 			</Button>
 			<!-- Signed out too: a playlist can live on this machine with no account (#251). -->
-			<Button variant="outline" size="sm" class="gap-2" onclick={() => openNewPlaylist()}>
+			<Button variant="outline" size="sm" class="gap-2 max-md:h-11" onclick={() => openNewPlaylist()}>
 				<HugeiconsIcon icon={Add01Icon} class="h-4 w-4" /> {t('nav.new_playlist')}
 			</Button>
 		</div>

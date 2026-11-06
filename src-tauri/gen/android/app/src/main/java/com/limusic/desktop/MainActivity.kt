@@ -1,5 +1,6 @@
 package com.limusic.desktop
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -12,6 +13,11 @@ class MainActivity : TauriActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
+    // Phones stay in portrait: a phone in landscape is wider than the web layout's tablet
+    // breakpoint and would get the desktop UI. Tablets keep rotating.
+    if (resources.configuration.smallestScreenWidthDp < 600) {
+      requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    }
   }
 
   override fun onWebViewCreate(webView: WebView) {

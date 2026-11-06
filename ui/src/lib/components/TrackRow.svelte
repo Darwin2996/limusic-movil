@@ -197,8 +197,13 @@
 <!-- Both rating buttons, so they can't drift apart. `icon` is a constant per call site, not a
      reactive ternary, which is the only way HugeiconsIcon takes it (it freezes at mount). -->
 {#snippet rateButton(icon: IconSvgElement, want: 'like' | 'dislike', label: string)}
+	<!-- On a phone only the rating given stays, as a mark: liking and disliking live in the ⋯ menu
+	     there, and two always-on thumbs cut the title to a few letters. -->
 	<button
-		class="cursor-pointer rounded-md p-3 text-muted-foreground hover:bg-accent/20 hover:text-foreground"
+		class="cursor-pointer rounded-md p-3 text-muted-foreground hover:bg-accent/20 hover:text-foreground {rated ===
+		want
+			? ''
+			: 'max-md:hidden'}"
 		aria-label={rated === want ? t('player.remove_rating') : label}
 		aria-pressed={rated === want}
 		onclick={(e) => {
@@ -234,7 +239,9 @@
      several always in flight, and `opacity` below 1 puts an effect node in the paint property tree
      for every row, which Chromium re-walks on every frame it composites. Measured in Chromium at 4x
      CPU throttling (`ui/perf/scroll.mjs`), frames over 20 ms across a wheel gesture: queue panel
-     50% -> 6%, Library > Songs 14% -> 1%. Hover still lands, it just lands at once. -->
+     50% -> 6%, Library > Songs 14% -> 1%. Hover still lands, it just lands at once.
+     `select-none` on a phone: a long press there selected the title instead of reaching the
+     contextmenu that opens the ⋯ menu. -->
 <div
 	role="button"
 	tabindex="0"
@@ -244,8 +251,8 @@
 	data-selection-key={selectionKey}
 	data-selected={selectable ? selected : undefined}
 	aria-describedby={selectable ? selectionDescriptionId : undefined}
-	aria-label={selectable ? t(guestAdd ? 'selection.track_guest' : 'selection.track', { title: song.title }) : guestAdd ? `Add ${song.title} to the session queue` : `Play ${song.title}`}
-	class="group flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-accent/10 {selected
+	aria-label={selectable ? t(guestAdd ? 'selection.track_guest' : 'selection.track', { title: song.title }) : t(guestAdd ? 'a11y.add_track_to_session' : 'a11y.play_track', { title: song.title })}
+	class="group flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-accent/10 max-md:select-none {selected
 		? 'bg-primary/15'
 		: active
 		? 'bg-accent/10'
@@ -343,7 +350,7 @@
 				{/if}
 			</div>
 			{#if song.play_count && showPlayCount && !compact && !columns}
-				<span class="mt-0.5 block text-xs text-muted-foreground md:hidden">
+				<span class="mt-0.5 block truncate text-xs text-muted-foreground md:hidden">
 					{t('library.play_count', { count: song.play_count })}
 				</span>
 			{/if}
@@ -458,7 +465,7 @@
 			     what has to reveal it before Tab can reach it. -->
 			<div
 				class="flex items-center gap-0.5 {rated === 'indifferent'
-					? 'invisible group-focus-within:visible group-hover:visible max-md:visible'
+					? 'invisible group-focus-within:visible group-hover:visible max-md:hidden'
 					: ''}"
 			>
 				{@render rateButton(ThumbsUpIcon, 'like', t('common.like'))}

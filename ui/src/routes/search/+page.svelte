@@ -43,6 +43,7 @@
 		auth,
 		clearSearches,
 		forgetSearch,
+		isAndroid,
 		noteSearch,
 		openAddToPlaylist,
 		personal,
@@ -412,7 +413,7 @@
 			/>
 			<SearchSuggest
 				bind:value={query}
-				placeholder={t('common.search_placeholder')}
+				placeholder={isAndroid ? t('common.search') : t('common.search_placeholder')}
 				inputClass="h-12 rounded-full bg-card/80 pl-12 text-base shadow-sm md:text-base"
 				onpick={() => {
 					lastQuery = query;
@@ -565,7 +566,7 @@
 					<section>
 						<SectionHeading title={t('search.recent')} icon={Clock01Icon}>
 							<button
-								class="shrink-0 cursor-pointer text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+								class="shrink-0 cursor-pointer text-xs font-medium text-muted-foreground transition-colors hover:text-foreground max-md:-my-3 max-md:px-2 max-md:py-3"
 								onclick={clearSearches}
 							>
 								{t('search.clear_recent')}
@@ -577,14 +578,14 @@
 									class="flex items-center rounded-full bg-foreground/5 text-sm transition-colors hover:bg-foreground/10"
 								>
 									<button
-										class="flex cursor-pointer items-center gap-2 py-1.5 pl-3.5 pr-1.5 font-medium text-foreground/80 hover:text-foreground"
+										class="flex cursor-pointer items-center gap-2 py-1.5 pl-3.5 pr-1.5 font-medium text-foreground/80 hover:text-foreground max-md:py-3"
 										onclick={() => searchFor(q)}
 									>
 										<HugeiconsIcon icon={Search01Icon} class="h-3.5 w-3.5 text-muted-foreground" />
 										{q}
 									</button>
 									<button
-										class="mr-1 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
+										class="mr-1 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground max-md:mr-0 max-md:size-11"
 										aria-label={t('search.forget', { query: q })}
 										title={t('search.forget', { query: q })}
 										onclick={() => forgetSearch(q)}

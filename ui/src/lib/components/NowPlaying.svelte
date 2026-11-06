@@ -23,6 +23,7 @@
 	import * as Tabs from '$lib/components/ui/tabs';
 	import * as api from '$lib/api';
 	import {
+		isAndroid,
 		np,
 		openAddToPlaylist,
 		playback,
@@ -60,7 +61,8 @@
 	// `lyricsOpen` is the lyrics/comments slot: the comments panel takes the lyrics' place, so either
 	// one open counts as that one panel.
 	let { queueOpen, lyricsOpen }: { queueOpen: boolean; lyricsOpen: boolean } = $props();
-	const tabbed = $derived(appearance.tabbedPlayer);
+	// Always tabbed on Android, where the tabs are the only way to queue, lyrics and comments.
+	const tabbed = $derived(appearance.tabbedPlayer || isAndroid);
 	// The two layouts (Settings > Appearance > Classic player layout). One component, so both
 	// share every behaviour below: the video hole, the backdrop click, the wheel volume, Esc. Only
 	// the markup differs. The new one is the default, the original is opt-in.

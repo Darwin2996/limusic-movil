@@ -59,8 +59,9 @@
 	}
 </script>
 
-<!-- data-ctx: right-clicking anywhere on the card opens the ⋯ menu below at the pointer. -->
-<div class="group relative flex w-full flex-col gap-2" data-ctx>
+<!-- data-ctx: right-clicking anywhere on the card opens the ⋯ menu below at the pointer, as does a
+     long press on a phone (`select-none` keeps it from selecting the title instead). -->
+<div class="group relative flex w-full flex-col gap-2 max-md:select-none" data-ctx>
 	<!-- draggable: every card is a drag source for home's Shortcuts grid (the only drop target). -->
 	<div
 		class="flex flex-col text-left transition-colors hover:bg-accent/10 {compact
@@ -145,7 +146,7 @@
 					<button
 						class="absolute flex cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground opacity-0 shadow-lg transition-opacity duration-200 ease-out group-hover:opacity-100 focus-visible:opacity-100 max-md:opacity-100 {compact
 							? 'bottom-1.5 right-1.5 h-7 w-7'
-							: 'bottom-2 right-2 h-9 w-9'}"
+							: 'bottom-2 right-2 h-9 w-9 max-md:h-11 max-md:w-11'}"
 						class:animate-pulse={playing}
 						disabled={playing}
 						aria-label={t('player.play')}

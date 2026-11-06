@@ -93,8 +93,21 @@ export function anchorMenu(e: Event, { align = 'left' }: { align?: 'left' | 'rig
  * Measuring happens at the top-left corner: a `fixed` box shrink-wraps to the room left of the
  * window edge, so a menu measured where it will sit reports the squeezed width, not its own.
  */
+/** A menu on a phone: a sheet along the bottom edge rather than a popup at its trigger. A dozen 32px
+ *  rows hanging off a ⋯ button were long, small to hit, and covered the player. Its rows get a
+ *  finger-sized height from `[data-sheet]` in layout.css. */
+const SHEET =
+	`${NO_TRANSITION};left:0;right:0;width:auto;top:auto;bottom:0;max-height:80dvh;overflow-y:auto;` +
+	'border-radius:1rem 1rem 0 0;padding:0.5rem 0.5rem max(env(safe-area-inset-bottom),0.5rem);' +
+	'transform-origin:bottom';
+
 export function fitMenu(a: Anchor) {
 	return (el: HTMLElement) => {
+		if (window.matchMedia('(max-width: 767px)').matches) {
+			el.dataset.sheet = '';
+			el.style.cssText = SHEET;
+			return;
+		}
 		el.style.cssText = `${UNPLACED};left:0;top:0;right:auto;bottom:auto`;
 		// offset*, not a client rect: the popup opens under a `zoom-in-95` animation, and a client
 		// rect is the *transformed* box, so it would report 95% of the real size.

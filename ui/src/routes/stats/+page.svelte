@@ -242,7 +242,8 @@
 			<h1 class="font-heading text-2xl font-bold tracking-tight">{t('stats.title')}</h1>
 			{#if stats?.firstAt}
 				<Tabs.Root value={range} onValueChange={(v) => (range = v as Range)}>
-					<Tabs.List>
+					<!-- Taller on a phone: at 36px the four ranges were 29px targets. -->
+					<Tabs.List class="max-md:h-11!">
 						{#each RANGES as r (r)}
 							<Tabs.Trigger value={r} class="px-3">{t(`stats.ranges.${r}`)}</Tabs.Trigger>
 						{/each}
