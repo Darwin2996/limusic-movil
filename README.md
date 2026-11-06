@@ -1,3 +1,15 @@
+> [!NOTE]
+> **LiMusic para Android: port no oficial.** Este repositorio adapta
+> [Limusic](https://github.com/SimoHypers/limusic), de SimoHypers, a teléfonos Android. No es la versión
+> oficial ni está respaldado por su autor. El resto de este README es el del proyecto original.
+>
+> - **Descarga:** la APK está en [Releases](https://github.com/Darwin2996/limusic-movil/releases/latest).
+>   La app avisa de las versiones nuevas y las instala ella misma (Android pide confirmarlo).
+> - **Qué cambia respecto al original:** [CAMBIOS_MOVIL.md](CAMBIOS_MOVIL.md); lo pendiente, en
+>   [TAREAS_MOVIL.md](TAREAS_MOVIL.md).
+> - **Publicar una versión:** `powershell -File scripts/android-release.ps1 -Version X.Y.Z`.
+> - **Licencia:** GPL-3.0, la misma que el original ([LICENSE](LICENSE)).
+
 <div align="center">
 
 <img src="./assets/docs/limusic-github-image.png" alt="Limusic Banner" width="100%">
