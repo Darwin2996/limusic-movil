@@ -264,3 +264,8 @@ Detalle y estado de cada tarea en `TAREAS_MOVIL.md`. Resumen de lo aplicado:
 - [x] Avisos flotantes ajustados a la barra del reproductor de una fila.
 - [ ] Sin probar en el teléfono (el móvil no estaba conectado): temporizador, deslizar para recargar,
   descargas e instalación de actualizaciones.
+- [x] **Publicado** en https://github.com/Darwin2996/limusic-movil (público, código en `main`) con la release
+  **v1.4.1** y su APK. Comprobado: la API de releases devuelve la APK, se ofrece a la 1.4.0-rc.1 y no a la
+  1.4.1, y la descarga funciona. La APK está firmada con la misma clave que la instalada
+  (SHA-1 `46:7D:79…`). Antes de publicar se reescribió el historial para quitar capturas y registros de
+  Codex y usar la dirección anónima de GitHub como autor.
