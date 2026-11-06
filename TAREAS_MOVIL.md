@@ -144,7 +144,7 @@ Estado: `[ ]` pendiente · `[~]` en curso · `[x]` hecho · `[?]` necesita una d
   → Hecho: la pulsación larga seleccionaba el texto; ahora las filas y tarjetas no son seleccionables en el móvil y Android abre el menú (hoja inferior).
 - [x] **Gestos en la barra compacta:** deslizar a los lados para cambiar de canción y hacia arriba para
   abrir el reproductor.
-  → Hecho, sin probar en el teléfono para no cambiarte de canción: deslizar a la izquierda pasa a la siguiente, a la derecha a la anterior, y hacia arriba abre el reproductor.
+  → Hecho y probado en el teléfono: a la izquierda pasa a la siguiente; a la derecha actúa como ⏮ (reinicia la canción y, si se repite enseguida, vuelve a la anterior); hacia arriba abre el reproductor. Al principio no respondía: el navegador se quedaba el gesto (`pointercancel`); la barra plegada usa ahora `touch-action: none`.
 - [x] **Volver a pulsar la pestaña activa** de la barra inferior sube al principio de la página.
 - [x] **Conservar la posición de desplazamiento** al volver atrás a una lista o página.
   → Ya existía en la app (`snapshot` en +layout.svelte); falta comprobarlo en el teléfono.

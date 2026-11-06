@@ -123,7 +123,9 @@
 	// what's left of it once it's minimised, so it's the way back in. Deliberately no pointer
 	// cursor, because this is the whole bar, not a button, and every real button keeps its own click.
 	// Swipes on the collapsed bar, touch only: sideways changes track, up opens the player. A swipe
-	// also eats the click it ends in, or lifting the finger would toggle the player too.
+	// also eats the click it ends in, or lifting the finger would toggle the player too. The bar is
+	// `touch-none` while collapsed: with the default the browser claimed the gesture as a pan and
+	// sent pointercancel, so the swipe never ended here.
 	let swipeFrom: { x: number; y: number } | null = null;
 	let swiped = false;
 	function onSwipeStart(e: PointerEvent) {
@@ -167,7 +169,7 @@
 	onclick={onBarClick}
  class="relative flex items-center gap-2 border-t bg-card px-2 py-2.5 sm:gap-4 sm:px-4 sm:py-3 max-md:grid max-md:grid-cols-[minmax(0,1fr)_auto] max-md:gap-x-2 max-md:gap-y-0 max-md:px-3 {np.open
 		? 'max-md:grid-rows-[auto_auto] max-md:border-t-0 max-md:bg-transparent max-md:pb-[calc(env(safe-area-inset-bottom)+0.75rem)]'
-		: 'max-md:py-2'}"
+		: 'max-md:touch-none max-md:py-2'}"
 >
 	<!-- On a phone the bar is two things. Collapsed: one row (the track, play/pause and next) under a
 	     hairline of progress, and tapping it opens the player. Open: the player above shows the track,

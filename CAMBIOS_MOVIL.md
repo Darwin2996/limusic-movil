@@ -227,5 +227,7 @@ Detalle y estado de cada tarea en `TAREAS_MOVIL.md`. Resumen de lo aplicado:
 - [x] Verificado en el Xiaomi: álbum, artista, Inicio, menú Más, Configuración (General y Reproducción),
   menú de canción como hoja, botón atrás con menú/diálogo/reproductor/Teatro, reproductor ampliado y
   Teatro sin vídeo. `pnpm run check` sin errores ni avisos y `menu.check` correcto.
-- [ ] Sin probar en el teléfono: gestos de deslizar en la barra (cambiarían la canción), la exclusión de
-  batería (es un ajuste del sistema que decides tú) y la calidad con datos móviles en una reproducción.
+- [x] Gestos de la barra: no respondían porque el navegador se quedaba el gesto (`pointercancel`); con
+  `touch-action: none` en la barra plegada funcionan. Probado en el Xiaomi en ambas direcciones.
+- [x] El usuario confirmó el aviso de batería y «Escuchar juntos» funcionando.
+- [ ] Sin probar: la calidad con datos móviles en una reproducción.
