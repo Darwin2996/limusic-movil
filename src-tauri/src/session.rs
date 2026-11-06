@@ -61,24 +61,20 @@ const ADD_ACCOUNT_URL: &str =
 /// the `auth-changed` event, or `login-error` on failure). `add_account` picks the AddSession
 /// flow so an additional Google account can be added while another is signed in.
 pub fn open_login(app: AppHandle, state: Arc<AppState>, add_account: bool) {
-    // Android uses Google Play services' native authorization UI and returns an OAuth access
-    // token. Google blocks password entry in an app-owned WebView; never fall through to the
-    // embedded login window on Android.
+    // Android signs in through its own native screen (GoogleLoginActivity), never the login
+    // window below: wry gives the activity a single WebView, so a second window would replace the
+    // app's UI. It hands back the same youtube.com cookie jar this window would.
     #[cfg(target_os = "android")]
     {
         tauri::async_runtime::spawn(async move {
             let result = async {
-                let account_email = state
-                    .it
-                    .cookie()
-                    .and_then(|cookie| innertube::cookie_oauth_email(&cookie).map(str::to_owned));
-                let token = crate::authorize_google_android(
-                    &app,
-                    add_account,
-                    account_email.as_deref(),
-                )
-                .await?;
-                let cookie = oauth_session_cookie(&token).await?;
+                // Backing out of the screen is not an error, as closing the desktop window isn't.
+                let Some(cookie) = crate::sign_in_google_android(&app, add_account).await? else {
+                    return Ok(());
+                };
+                if innertube::cookie_sapisid(&cookie).is_none() {
+                    return Err("Google returned no YouTube session".to_owned());
+                }
                 match state.sign_in(cookie, None).await? {
                     SignInOutcome::Complete => {
                         let _ = app.emit("login-done", ());
@@ -177,36 +173,6 @@ pub fn open_login(app: AppHandle, state: Arc<AppState>, add_account: bool) {
     }
 }
 
-/// Construct the internal session envelope used by the existing account persistence path. The
-/// synthetic SAPISID value is a stable account key only; the bearer token is extracted separately
-/// by the InnerTube transport and is never serialized into a Cookie request header.
-#[cfg(target_os = "android")]
-async fn oauth_session_cookie(access_token: &str) -> Result<String, String> {
-    let profile: serde_json::Value = reqwest::Client::new()
-        .get("https://www.googleapis.com/oauth2/v2/userinfo")
-        .bearer_auth(access_token)
-        .send()
-        .await
-        .map_err(|error| format!("Couldn't read the Google account profile: {error}"))?
-        .error_for_status()
-        .map_err(|error| format!("Google account profile request failed: {error}"))?
-        .json()
-        .await
-        .map_err(|error| format!("Google returned an invalid account profile: {error}"))?;
-    let email = profile
-        .get("email")
-        .and_then(serde_json::Value::as_str)
-        .filter(|email| !email.trim().is_empty())
-        .ok_or("Google did not return an account email")?;
-    if profile.get("verified_email").and_then(serde_json::Value::as_bool) == Some(false) {
-        return Err("Google did not verify the account email".into());
-    }
-    Ok(format!(
-        "SAPISID=oauth:{}; LIMUSIC_OAUTH_TOKEN={access_token}",
-        email.trim().to_lowercase()
-    ))
-}
-
 /// WebGL off in the Google webviews, as it already is in the main window (`tune_webview`).
 ///
 /// accounts.google.com opens a WebGL context the moment "Next" is clicked, and music.youtube.com
@@ -249,37 +215,11 @@ pub async fn refresh_session(app: AppHandle, state: Arc<AppState>) {
         return;
     }
 
+    // The hidden refresh webview below cannot be hidden on Android: wry gives the activity a
+    // single WebView, so building it replaces the app's UI with music.youtube.com.
     #[cfg(target_os = "android")]
     {
-        let current = state.it.cookie().unwrap_or_default();
-        if innertube::cookie_oauth_token(&current).is_some() {
-            let Some(expected_account) = innertube::cookie_sapisid(&current).map(str::to_owned)
-            else {
-                return;
-            };
-            let account_email = innertube::cookie_oauth_email(&current).map(str::to_owned);
-            let refreshed = async {
-                let token = crate::authorize_google_android(
-                    &app,
-                    false,
-                    account_email.as_deref(),
-                )
-                .await?;
-                let cookie = oauth_session_cookie(&token).await?;
-                if innertube::cookie_sapisid(&cookie) != Some(expected_account.as_str()) {
-                    return Err("Google returned a different account; keeping the current one".to_owned());
-                }
-                state.sign_in(cookie, Some(&expected_account)).await?;
-                Ok::<(), String>(())
-            }
-            .await;
-            if let Err(error) = refreshed {
-                tracing::warn!(%error, "could not refresh the Google OAuth session");
-            }
-            return;
-        }
-        // The hidden refresh webview below cannot be hidden on Android: wry gives the activity a
-        // single WebView, so building it replaces the app's UI with music.youtube.com.
+        let _ = app;
         return;
     }
 

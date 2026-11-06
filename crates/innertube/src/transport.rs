@@ -118,22 +118,6 @@ pub fn cookie_sapisid(cookie: &str) -> Option<&str> {
     })
 }
 
-/// Return the OAuth access token from LiMusic's internal auth-session representation. OAuth
-/// sessions retain the familiar SAPISID slot for stable account identity, but carry the bearer
-/// token in a private attribute that must never be sent as a Cookie header.
-pub fn cookie_oauth_token(cookie: &str) -> Option<&str> {
-    cookie.split(';').find_map(|kv| {
-        let (k, v) = kv.split_once('=')?;
-        (k.trim() == "LIMUSIC_OAUTH_TOKEN" && !v.trim().is_empty()).then(|| v.trim())
-    })
-}
-
-/// The stable Google account identifier carried in the private SAPISID slot of an OAuth-backed
-/// session. Not a real Google cookie and never sent over HTTP.
-pub fn cookie_oauth_email(cookie: &str) -> Option<&str> {
-    cookie_sapisid(cookie)?.strip_prefix("oauth:")
-}
-
 /// Apply `Set-Cookie` response values to a `Cookie` request header, returning the new header only
 /// when something actually changed. Existing names keep their position; new ones go on the end.
 ///
@@ -629,16 +613,10 @@ impl InnerTube {
         // SAPISIDHASH cookie auth — only when logged in AND the client supports it (Phase 3).
         if set_login && client.login_supported {
             if let Some(cookie) = &s.cookie {
-                if let Some(token) = cookie_oauth_token(cookie) {
-                    if let Ok(value) = HeaderValue::from_str(&format!("Bearer {token}")) {
-                        h.insert(HeaderName::from_static("authorization"), value);
-                    }
-                } else {
-                    set(&mut h, "cookie", cookie);
-                    if let Some(sapisid) = s.sapisid() {
-                        if let Ok(val) = HeaderValue::from_str(&sapisid_hash(&sapisid, ORIGIN)) {
-                            h.insert(HeaderName::from_static("authorization"), val);
-                        }
+                set(&mut h, "cookie", cookie);
+                if let Some(sapisid) = s.sapisid() {
+                    if let Ok(val) = HeaderValue::from_str(&sapisid_hash(&sapisid, ORIGIN)) {
+                        h.insert(HeaderName::from_static("authorization"), val);
                     }
                 }
             }

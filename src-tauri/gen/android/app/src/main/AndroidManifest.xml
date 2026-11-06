@@ -26,6 +26,11 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|screenLayout|uiMode"
+            android:name=".GoogleLoginActivity"
+            android:exported="false" />
+
         <service
             android:name=".PlaybackService"
             android:exported="true"

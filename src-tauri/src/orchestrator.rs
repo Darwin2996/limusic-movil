@@ -857,11 +857,7 @@ fn stream_headers(
     }
     if is_upload {
         if let Some(cookie) = cookie {
-            if let Some(token) = innertube::cookie_oauth_token(&cookie) {
-                headers.insert("Authorization".to_owned(), format!("Bearer {token}"));
-            } else {
-                headers.insert("Cookie".to_owned(), cookie);
-            }
+            headers.insert("Cookie".to_owned(), cookie);
         }
     }
     headers

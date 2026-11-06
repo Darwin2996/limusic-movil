@@ -1,7 +1,6 @@
 package com.limusic.desktop
 
 import android.app.Activity
-import android.accounts.Account
 import android.content.ComponentName
 import android.content.Intent
 import android.database.Cursor
@@ -16,9 +15,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import com.google.android.gms.auth.api.identity.AuthorizationRequest
-import com.google.android.gms.auth.api.identity.Identity
-import com.google.android.gms.common.api.Scope
 import app.tauri.annotation.Command
 import app.tauri.annotation.ActivityCallback
 import app.tauri.annotation.InvokeArg
@@ -26,7 +22,6 @@ import app.tauri.annotation.TauriPlugin
 import app.tauri.plugin.Invoke
 import app.tauri.plugin.Plugin
 import androidx.activity.result.ActivityResult
-import androidx.activity.result.IntentSenderRequest
 
 @InvokeArg
 class ExecuteArgs {
@@ -56,9 +51,8 @@ class DeleteImportedFolderArgs {
 }
 
 @InvokeArg
-class AuthorizeGoogleArgs {
+class SignInGoogleArgs {
   var addAccount: Boolean = false
-  var accountEmail: String? = null
 }
 
 @TauriPlugin
@@ -115,69 +109,22 @@ class PlayerPlugin(private val activity: Activity) : Plugin(activity) {
     }
   }
 
-  /** Use Google Play services' account authorization UI instead of collecting Google credentials
-   * inside LiMusic's WebView. The returned access token travels only through native plugin IPC to
-   * Rust; it is never returned to the Svelte frontend. */
+  /** Open the native Google sign-in screen ([GoogleLoginActivity]). Resolves `{cookie}` with the
+   * youtube.com cookie jar, or `{cookie: null}` when the user backs out. The cookies travel only
+   * through native plugin IPC to Rust; they are never returned to the Svelte frontend. */
   @Command
-  fun authorizeGoogle(invoke: Invoke) {
-    try {
-      val args = invoke.parseArgs(AuthorizeGoogleArgs::class.java)
-      val scopes = listOf(
-        Scope("https://www.googleapis.com/auth/youtube"),
-        Scope("https://www.googleapis.com/auth/userinfo.email"),
-        Scope("https://www.googleapis.com/auth/userinfo.profile"),
-      )
-      val request = AuthorizationRequest.builder()
-        .setRequestedScopes(scopes)
-        .apply {
-          if (args.addAccount) setPrompt(AuthorizationRequest.Prompt.SELECT_ACCOUNT)
-          else args.accountEmail?.takeIf { it.isNotBlank() }?.let {
-            setAccount(Account(it, "com.google"))
-          }
-        }
-        .build()
-      Identity.getAuthorizationClient(activity).authorize(request)
-        .addOnSuccessListener { result ->
-          if (result.hasResolution()) {
-            val resolution = result.pendingIntent
-            if (resolution == null) {
-              invoke.reject("Google authorization needs a resolution but returned none")
-            } else {
-              startIntentSenderForResult(
-                invoke,
-                IntentSenderRequest.Builder(resolution.intentSender).build(),
-                "onGoogleAuthorizationResult",
-              )
-            }
-          } else {
-            val token = result.accessToken
-            if (token.isNullOrBlank()) invoke.reject("Google did not return an access token")
-            else invoke.resolveObject(mapOf("accessToken" to token))
-          }
-        }
-        .addOnFailureListener { error ->
-          invoke.reject("Google authorization failed: ${error.message}")
-        }
-    } catch (error: Exception) {
-      invoke.reject("Could not start Google authorization: ${error.message}")
-    }
+  fun signInGoogle(invoke: Invoke) {
+    val args = invoke.parseArgs(SignInGoogleArgs::class.java)
+    val intent = Intent(activity, GoogleLoginActivity::class.java)
+      .putExtra(GoogleLoginActivity.EXTRA_ADD_ACCOUNT, args.addAccount)
+    startActivityForResult(invoke, intent, "onGoogleSignInResult")
   }
 
   @ActivityCallback
-  fun onGoogleAuthorizationResult(invoke: Invoke, result: ActivityResult) {
-    if (result.resultCode != Activity.RESULT_OK) {
-      invoke.reject("Google authorization was cancelled")
-      return
-    }
-    try {
-      val data = result.data ?: throw IllegalStateException("Google returned no authorization data")
-      val authResult = Identity.getAuthorizationClient(activity).getAuthorizationResultFromIntent(data)
-      val token = authResult.accessToken
-      if (token.isNullOrBlank()) throw IllegalStateException("Google did not return an access token")
-      invoke.resolveObject(mapOf("accessToken" to token))
-    } catch (error: Exception) {
-      invoke.reject("Google authorization failed: ${error.message}")
-    }
+  fun onGoogleSignInResult(invoke: Invoke, result: ActivityResult) {
+    val cookie = result.data?.getStringExtra(GoogleLoginActivity.EXTRA_COOKIE)
+      ?.takeIf { result.resultCode == Activity.RESULT_OK && it.isNotBlank() }
+    invoke.resolveObject(mapOf("cookie" to cookie))
   }
 
   /** Android's folder picker returns a SAF content URI, which std::fs and the Rust tag reader

@@ -91,26 +91,22 @@ pub(crate) async fn open_external_android(
         .map_err(|e| e.to_string())
 }
 
+/// Run the native Google sign-in screen and return its youtube.com cookie jar, or `None` when the
+/// user backed out of it.
 #[cfg(target_os = "android")]
-pub(crate) async fn authorize_google_android(
+pub(crate) async fn sign_in_google_android(
     app: &tauri::AppHandle,
     add_account: bool,
-    account_email: Option<&str>,
-) -> Result<String, String> {
+) -> Result<Option<String>, String> {
     let plugin = app.state::<AndroidPlayerPluginHandle>().0.clone();
     let result = plugin
         .run_mobile_plugin_async::<serde_json::Value>(
-            "authorizeGoogle",
-            serde_json::json!({ "addAccount": add_account, "accountEmail": account_email }),
+            "signInGoogle",
+            serde_json::json!({ "addAccount": add_account }),
         )
         .await
         .map_err(|e| e.to_string())?;
-    result
-        .get("accessToken")
-        .and_then(serde_json::Value::as_str)
-        .filter(|token| !token.trim().is_empty())
-        .map(str::to_owned)
-        .ok_or_else(|| "Google authorization returned no access token".to_owned())
+    Ok(result.get("cookie").and_then(serde_json::Value::as_str).map(str::to_owned))
 }
 
 /// Open Android's system folder picker through an app command. Calling this as a plugin command

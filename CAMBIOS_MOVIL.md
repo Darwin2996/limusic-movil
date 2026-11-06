@@ -137,6 +137,10 @@ generados; `Cargo.lock` se restauró al terminar y no se cambiaron las dependenc
 
 ## Inicio de sesión Google — flujo OAuth Android
 
+> **Sustituido** por el inicio de sesión con la página de Google (sección «Inicio de sesión Google — página
+> de Google en pantalla nativa»). YouTube Music rechaza los tokens OAuth de clientes de terceros con
+> HTTP 400 desde agosto de 2025, así que este flujo no podía funcionar y su código se eliminó.
+
 - [x] Se sustituyó para Android la apertura del formulario de Google dentro del WebView de LiMusic por la pantalla de autorización nativa de Google Play Services. Las credenciales se gestionan en la interfaz de Google/Android y no se introducen en el WebView de LiMusic.
 - [x] Se añadieron las autorizaciones de YouTube y del perfil/correo, el callback de autorización, la selección de cuenta al añadir otra y la obtención del correo verificado para conservar la separación de cuentas de LiMusic.
 - [x] Se adaptó el transporte InnerTube y la descarga de subidas privadas para enviar el token OAuth como `Authorization: Bearer`; las sesiones de escritorio basadas en cookies mantienen su transporte anterior. La renovación Android solicita a Play Services una autorización actualizada para la misma cuenta.
@@ -168,3 +172,22 @@ generados; `Cargo.lock` se restauró al terminar y no se cambiaron las dependenc
 - [ ] Probar «Escuchar juntos» con otra persona en el teléfono.
 - [ ] Mejora futura: descifrar en Android sin WebView (p. ej. con QuickJS, que ya está en el árbol de
   dependencias) para recuperar los clientes que lo necesitan.
+
+## Inicio de sesión Google — página de Google en pantalla nativa
+
+- [x] **Por qué no funcionaba:** el flujo OAuth anterior obtenía el token, pero YouTube Music lo rechazaba
+  con HTTP 400 en `account_menu`. Desde el 29 de agosto de 2025 YouTube Music no acepta tokens OAuth de
+  clientes de terceros (ytmusicapi #813, sin solución). El login original de escritorio fallaba en Android
+  por el mismo motivo que la pantalla en blanco: abría un segundo WebView de Tauri que sustituía la app.
+- [x] Nueva pantalla nativa `GoogleLoginActivity` que abre la página oficial de Google
+  (`accounts.google.com`) y, al llegar a music.youtube.com, devuelve las cookies de youtube.com a Rust,
+  que inicia sesión por el mismo camino que escritorio. Muestra arriba una barra con candado y dominio para
+  que se vea que se escribe en la web de Google. Funciona el autocompletado de contraseñas de Android.
+  «Añadir cuenta» borra antes la sesión de Google de esa pantalla, como en escritorio.
+- [x] Eliminado el código OAuth: comando `authorizeGoogle`, dependencia `play-services-auth`, token
+  Bearer en `transport.rs` y `orchestrator.rs`, y el refresco OAuth de `session.rs`. El proyecto de Google
+  Cloud ya no es necesario.
+- [x] Verificado en el Xiaomi: el usuario inició sesión y la Biblioteca cargó sus playlists y «Música que
+  me gusta», sin errores 400/401/403 en los registros.
+- [ ] En Android la sesión no se renueva en segundo plano (escritorio usa un WebView oculto que aquí no es
+  posible). Si caduca, hay que volver a iniciar sesión; si Google mantiene su sesión, entra directamente.
