@@ -302,4 +302,5 @@ Detalle y estado de cada tarea en `TAREAS_MOVIL.md`. Resumen de lo aplicado:
   escuchar juntos» (crea la sala si hace falta y le envía el código). Al invitado le aparece un aviso con
   «Unirme», en cualquier pantalla. «Compartir lo que escucho» se puede apagar.
 - [x] El formato de invitación de Escuchar juntos se movió a `lt.svelte.ts` para usar el mismo en ambos.
-- [ ] Pendiente: datos del proyecto de Supabase y probarlo entre dos móviles.
+- [x] Proyecto de Supabase conectado: tablas creadas, cuentas anónimas activas y escritura sin sesión rechazada por las reglas (comprobado). Publicado en la **v1.4.2**.
+- [ ] Pendiente: probarlo entre dos móviles.

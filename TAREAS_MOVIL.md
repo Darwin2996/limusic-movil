@@ -189,8 +189,7 @@ Estado: `[ ]` pendiente · `[~]` en curso · `[x]` hecho · `[?]` necesita una d
 - [x] Pantalla «Amigos» (Más ▸ Amigos): perfil con @usuario, nombre, bio y color; añadir por @usuario;
   solicitudes; lista con lo que escucha cada uno; ficha del amigo con «Reproducir» e «Invitar a escuchar
   juntos»; aviso de invitación en toda la app con «Unirme».
-- [?] **Falta el proyecto de Supabase:** URL y clave `anon` en `ui/src/lib/friends.svelte.ts`, y ejecutar
-  `supabase/amigos.sql` en su SQL Editor. Hasta entonces la pantalla dice que no está configurado.
+- [x] **Proyecto de Supabase configurado** (06/11/2026): tablas y reglas creadas con `supabase/amigos.sql`, cuentas anónimas activadas; publicado en la v1.4.2.
 
 ## Ya comprobado y correcto
 

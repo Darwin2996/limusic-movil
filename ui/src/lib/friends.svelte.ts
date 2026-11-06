@@ -12,8 +12,8 @@ import { ui } from '$lib/player.svelte';
 
 /** The project (Project Settings ▸ API). The anon key is meant to ship in the app: what it can do is
  *  bounded by the row level security in supabase/amigos.sql. Empty: friends are switched off. */
-const SUPABASE_URL = '';
-const SUPABASE_ANON_KEY = '';
+const SUPABASE_URL = 'https://qnjupsustazvjfmqgfid.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_bvU1BlEGM8ES3K0sXGTrPA_wKKI1Fq6';
 export const friendsConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
 export type Profile = {
