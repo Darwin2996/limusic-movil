@@ -7,6 +7,7 @@
 		Link04Icon,
 		UserGroup02Icon,
 		CameraVideoIcon,
+		UserMultiple02Icon,
 		Settings02Icon
 	} from '@hugeicons/core-free-icons';
 	import * as Dialog from '$lib/components/ui/dialog';
@@ -43,6 +44,9 @@
 				<span class="text-sm font-medium">{t('nav.account')}</span>
 				<div class="h-10 shrink-0"><AccountMenu /></div>
 			</div>
+			<button class="flex min-h-12 items-center gap-3 rounded-xl px-3 text-left hover:bg-muted" onclick={() => (open = false, goto('/friends'))}>
+				<HugeiconsIcon icon={UserMultiple02Icon} class="size-5" />{t('nav.friends')}
+			</button>
 			<button class="flex min-h-12 items-center gap-3 rounded-xl px-3 text-left hover:bg-muted" onclick={() => (open = false, goto('/history'))}>
 				<HugeiconsIcon icon={Clock01Icon} class="size-5" />{t('nav.history')}
 			</button>

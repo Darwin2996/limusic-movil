@@ -80,6 +80,8 @@
 	} from '$lib/api';
 	import { checkApkUpdate, dismissApkUpdate, type ApkRelease } from '$lib/apkupdate';
 	import { initDownloads } from '$lib/downloads.svelte';
+	import { friends, initFriends, publishNowPlaying } from '$lib/friends.svelte';
+	import FriendInvites from '$lib/components/FriendInvites.svelte';
 	import { video } from '$lib/video.svelte';
 	import { initWin, windowCorners } from '$lib/win.svelte';
 	import { initZoom } from '$lib/zoom.svelte';
@@ -139,7 +141,12 @@
 	const tabbed = $derived(np.open && (appearance.tabbedPlayer || isAndroid));
 
 	// Pages reached from another one, which a phone needs a visible way back from.
-	const hasBackBar = $derived(/^\/(artist|album|playlist|list|history)(\/|$)/.test(page.url.pathname));
+	const hasBackBar = $derived(/^\/(artist|album|playlist|list|history|friends)(\/|$)/.test(page.url.pathname));
+
+	// Friends see what this phone plays (when sharing is on); friends.svelte.ts sends changes only.
+	$effect(() => {
+		if (isAndroid && friends.me) publishNowPlaying(playback.now, !playback.paused).catch(() => {});
+	});
 
 	// Android: the notification's heart follows the playing track's rating.
 	$effect(() => {
@@ -318,6 +325,7 @@
 		const updateTimer = isAndroid ? undefined : setInterval(checkForUpdatesQuiet, QUIET_INTERVAL_MS);
 		const teardownApp = initApp();
 		const teardownDownloads = isAndroid ? initDownloads() : null;
+		const teardownFriends = isAndroid ? initFriends() : null;
 		// The notification's heart rates the track the way the player's own heart does.
 		const likeListener = isAndroid ? onNotificationLike(() => toggleNowPlayingRating('like')) : null;
 		const teardownZoom = initZoom();
@@ -327,6 +335,7 @@
 			clearInterval(updateTimer);
 			backListener?.then((l) => l.unregister());
 			teardownDownloads?.();
+			teardownFriends?.();
 			likeListener?.then((u) => u());
 			connection?.removeEventListener('change', reportNetwork);
 			teardownApp();
@@ -484,7 +493,7 @@
 	<ChannelPicker />
 	<ListenTogether />
 	<LinkDialog />
-	{#if isAndroid}<BatteryNotice />{/if}
+	{#if isAndroid}<BatteryNotice /><FriendInvites />{/if}
 	<ImportDialog />
 
 	<!-- The two notification banners below run at z-[100]. Dialogs and menus sit at z-50 and portal to

@@ -182,6 +182,16 @@ Estado: `[ ]` pendiente · `[~]` en curso · `[x]` hecho · `[?]` necesita una d
 - [x] **Avisar de versiones nuevas de la APK** (por ejemplo, desde las releases de GitHub).
   → Hecho: consulta las releases de `Darwin2996/limusic-movil`, descarga la APK y abre el instalador de Android. Se publica con `scripts/android-release.ps1`.
 
+## Amigos (en curso, 06/11/2026)
+
+- [x] Esquema y reglas de privacidad en `supabase/amigos.sql` (perfiles, amistades, qué escucha cada uno,
+  invitaciones; solo los amigos aceptados ven lo que escuchas).
+- [x] Pantalla «Amigos» (Más ▸ Amigos): perfil con @usuario, nombre, bio y color; añadir por @usuario;
+  solicitudes; lista con lo que escucha cada uno; ficha del amigo con «Reproducir» e «Invitar a escuchar
+  juntos»; aviso de invitación en toda la app con «Unirme».
+- [?] **Falta el proyecto de Supabase:** URL y clave `anon` en `ui/src/lib/friends.svelte.ts`, y ejecutar
+  `supabase/amigos.sql` en su SQL Editor. Hasta entonces la pantalla dice que no está configurado.
+
 ## Ya comprobado y correcto
 
 - Pantalla en blanco al reproducir: arreglada (commit `62262fb`).

@@ -139,7 +139,8 @@
 		"saved_accounts_hint": "Pick a saved account to switch to it.",
 		"history": "History",
 		"stats": "Stats",
-		"no_channels": "YouTube did not return any selectable channels."
+		"no_channels": "YouTube did not return any selectable channels.",
+		"friends": "Friends"
 	},
 	"player": {
 		"play": "Play",
@@ -1366,5 +1367,50 @@
 		"queued": "Downloading {count} songs",
 		"nothing_new": "Already downloaded",
 		"failed": "Couldn't download: {error}"
+	},
+	"friends": {
+		"title": "Friends",
+		"not_configured": "Friends are not set up in this build yet.",
+		"setup_title": "Create your profile",
+		"setup_hint": "Pick the @username your friends will find you by. Nothing from your Google account is shared.",
+		"username": "Username",
+		"display_name": "Display name",
+		"create_profile": "Create profile",
+		"edit": "Edit",
+		"bio": "About you",
+		"color": "Colour",
+		"share": "Share what I'm playing",
+		"share_hint": "Only your friends see it.",
+		"add_placeholder": "Your friend's @username",
+		"add": "Add",
+		"request_sent": "Request sent",
+		"requests": "Friend requests",
+		"accept": "Accept",
+		"decline": "Decline",
+		"your_friends": "Your friends ({count})",
+		"empty": "No friends yet. Add someone by their @username.",
+		"sent": "Sent requests",
+		"no_activity": "No recent activity",
+		"listening": "Listening to {track}",
+		"listened_minutes": "{track} · {count} min ago",
+		"listened_hours": "{track} · {count} h ago",
+		"listened_days": "{track} · {count} d ago",
+		"invite": "Invite to Listen Together",
+		"invite_sent": "Invite sent",
+		"remove": "Remove friend",
+		"invite_title": "Listen Together invite",
+		"invited_you": "{name} invites you to listen together.",
+		"a_friend": "A friend",
+		"join": "Join",
+		"not_now": "Not now",
+		"errors": {
+			"username_taken": "That username is taken.",
+			"username_invalid": "Use 3 to 20 letters, numbers, dots or underscores.",
+			"not_found": "Nobody has that @username.",
+			"self": "That's you.",
+			"already": "You are already friends, or the request is pending.",
+			"no_room": "Couldn't create the room.",
+			"generic": "Something went wrong: {error}"
+		}
 	}
 }

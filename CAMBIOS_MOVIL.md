@@ -291,3 +291,15 @@ Detalle y estado de cada tarea en `TAREAS_MOVIL.md`. Resumen de lo aplicado:
   de un toque, sobre cualquier tema; después se puede ajustar cada parte.
 - [x] `@sveltejs/kit` y `adapter-static` fijados a 2.69.1 y 3.0.10: estaban como `latest` y una instalación
   los subía a versiones mayores nuevas.
+
+## Sistema de amigos (06/11/2026)
+
+- [x] Basado en Supabase (gratuito, sin servidor propio): cada móvil entra con una cuenta anónima y elige
+  un @usuario; no se usa nada de Google. La privacidad se aplica en la base de datos con row level
+  security (`supabase/amigos.sql`).
+- [x] Más ▸ Amigos: perfil (nombre, bio, color), añadir por @usuario, aceptar o rechazar solicitudes, lista
+  con lo que escucha cada amigo en directo, ficha del amigo con «Reproducir» su canción e «Invitar a
+  escuchar juntos» (crea la sala si hace falta y le envía el código). Al invitado le aparece un aviso con
+  «Unirme», en cualquier pantalla. «Compartir lo que escucho» se puede apagar.
+- [x] El formato de invitación de Escuchar juntos se movió a `lt.svelte.ts` para usar el mismo en ambos.
+- [ ] Pendiente: datos del proyecto de Supabase y probarlo entre dos móviles.

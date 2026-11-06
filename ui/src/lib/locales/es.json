@@ -89,7 +89,8 @@
 		"remove_account_desc": "{name} solo se quita de la lista. La cuenta de Google en sí no se ve afectada y puedes iniciar sesión con esta cuando quieras.",
 		"saved_accounts_hint": "Elige una cuenta guardada para cambiar a esta.",
 		"no_channels": "YouTube no devolvió ningún canal seleccionable.",
-		"stats": "Estadísticas"
+		"stats": "Estadísticas",
+		"friends": "Amigos"
 	},
 	"player": {
 		"play": "Reproducir",
@@ -1366,5 +1367,50 @@
 		"queued": "Descargando {count} canciones",
 		"nothing_new": "Ya está descargado",
 		"failed": "No se pudo descargar: {error}"
+	},
+	"friends": {
+		"title": "Amigos",
+		"not_configured": "El sistema de amigos aún no está configurado en esta versión.",
+		"setup_title": "Crea tu perfil",
+		"setup_hint": "Elige el @usuario con el que te encontrarán tus amigos. No se comparte nada de tu cuenta de Google.",
+		"username": "Nombre de usuario",
+		"display_name": "Nombre visible",
+		"create_profile": "Crear perfil",
+		"edit": "Editar",
+		"bio": "Sobre ti",
+		"color": "Color",
+		"share": "Compartir lo que escucho",
+		"share_hint": "Solo lo ven tus amigos.",
+		"add_placeholder": "@usuario de tu amigo",
+		"add": "Añadir",
+		"request_sent": "Solicitud enviada",
+		"requests": "Solicitudes de amistad",
+		"accept": "Aceptar",
+		"decline": "Rechazar",
+		"your_friends": "Tus amigos ({count})",
+		"empty": "Aún no tienes amigos. Añade a alguien por su @usuario.",
+		"sent": "Solicitudes enviadas",
+		"no_activity": "Sin actividad reciente",
+		"listening": "Escuchando {track}",
+		"listened_minutes": "{track} · hace {count} min",
+		"listened_hours": "{track} · hace {count} h",
+		"listened_days": "{track} · hace {count} d",
+		"invite": "Invitar a escuchar juntos",
+		"invite_sent": "Invitación enviada",
+		"remove": "Eliminar amigo",
+		"invite_title": "Invitación a escuchar juntos",
+		"invited_you": "{name} te invita a escuchar juntos.",
+		"a_friend": "Un amigo",
+		"join": "Unirme",
+		"not_now": "Ahora no",
+		"errors": {
+			"username_taken": "Ese nombre de usuario ya existe.",
+			"username_invalid": "Usa de 3 a 20 letras, números, puntos o guiones bajos.",
+			"not_found": "No hay nadie con ese @usuario.",
+			"self": "Ese eres tú.",
+			"already": "Ya sois amigos o la solicitud está pendiente.",
+			"no_room": "No se pudo crear la sala.",
+			"generic": "Algo falló: {error}"
+		}
 	}
 }
