@@ -269,3 +269,13 @@ Detalle y estado de cada tarea en `TAREAS_MOVIL.md`. Resumen de lo aplicado:
   1.4.1, y la descarga funciona. La APK está firmada con la misma clave que la instalada
   (SHA-1 `46:7D:79…`). Antes de publicar se reescribió el historial para quitar capturas y registros de
   Codex y usar la dirección anónima de GitHub como autor.
+
+## Enlaces compartidos, «me gusta» en la notificación y widget (06/11/2026)
+
+- [x] **Abrir enlaces compartidos:** LiMusic aparece en «Compartir» (texto) y en «Abrir con» de enlaces de
+  YouTube y YouTube Music; el enlace se abre como en «Abrir enlace» (`SharedLinks.kt`, `LinkDialog.svelte`).
+- [x] **«Me gusta» en la notificación y la pantalla de bloqueo:** botón de corazón de Media3 que puntúa la
+  canción a través de la interfaz (como su propio corazón) y se rellena según la valoración.
+- [x] **Widget de pantalla de inicio** (`PlayerWidget.kt`): portada, título, artista y
+  anterior/reproducir/siguiente; si la app no está abierta, la abre.
+- [x] Compila (Rust, Kotlin y la interfaz). [ ] Sin probar en el teléfono.

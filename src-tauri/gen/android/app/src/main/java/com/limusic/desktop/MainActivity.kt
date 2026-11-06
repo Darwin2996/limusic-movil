@@ -1,5 +1,6 @@
 package com.limusic.desktop
 
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.View
@@ -18,6 +19,18 @@ class MainActivity : TauriActivity() {
     if (resources.configuration.smallestScreenWidthDp < 600) {
       requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
     }
+  }
+
+  // A link shared to the app, at launch or while it runs (singleTask: the same activity).
+  override fun onStart() {
+    super.onStart()
+    SharedLinks.capture(intent)
+  }
+
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    setIntent(intent)
+    SharedLinks.capture(intent)
   }
 
   override fun onWebViewCreate(webView: WebView) {

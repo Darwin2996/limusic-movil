@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">LiMusic</string>
     <string name="main_activity_title">LiMusic</string>
+    <string name="widget_description">La canción que suena y sus controles</string>
+    <string name="widget_idle">Toca para abrir</string>
+    <string name="widget_previous">Anterior</string>
+    <string name="widget_toggle">Reproducir o pausar</string>
+    <string name="widget_next">Siguiente</string>
 </resources>

@@ -80,7 +80,7 @@ Estado: `[ ]` pendiente · `[~]` en curso · `[x]` hecho · `[?]` necesita una d
 
 ### Riesgos técnicos
 
-- [ ] **Descifrado sin WebView** (QuickJS, ya en las dependencias) para recuperar los clientes de YouTube
+- [ ] **Descifrado sin WebView** (decidido el 06/11/2026: no por ahora) (QuickJS, ya en las dependencias) para recuperar los clientes de YouTube
   que hoy se omiten en Android. Todo suena por VISIONOS; si falla, no hay alternativa.
   → Mitigado: si fallan todos los clientes directos, el orquestador ya recurre a rustypipe, que trae su propio descifrado con QuickJS y compila para Android. No se ha forzado ese camino en el teléfono (habría que desactivar clientes y cambiar la cola).
 - [ ] **PoToken no disponible en Android** («BotGuard is not available in this Android build»). Si YouTube
@@ -166,15 +166,19 @@ Estado: `[ ]` pendiente · `[~]` en curso · `[x]` hecho · `[?]` necesita una d
 
 ## Ideas sin decidir
 
-- [ ] **Abrir enlaces compartidos:** que LiMusic aparezca al pulsar «Compartir» en un enlace de YouTube o
+- [x] **Abrir enlaces compartidos:** que LiMusic aparezca al pulsar «Compartir» en un enlace de YouTube o
   YouTube Music desde otra app, y lo reproduzca.
+  → Hecho: LiMusic aparece en «Compartir» y en «Abrir con» de los enlaces de YouTube y YouTube Music, y abre el enlace como «Abrir enlace» (`SharedLinks.kt`, `LinkDialog.svelte`).
 - [x] **Temporizador de apagado:** parar la música tras X minutos o al acabar la canción.
   → Hecho: botón de luna en el reproductor ampliado; la cuenta atrás va en Rust (`sleep.rs`) para que funcione con la pantalla apagada.
-- [ ] **Me gusta desde la notificación** y la pantalla de bloqueo.
+- [x] **Me gusta desde la notificación** y la pantalla de bloqueo.
+  → Hecho: corazón en la notificación y la pantalla de bloqueo; puntúa la canción como el del reproductor y muestra si te gusta.
 - [x] **Descargas sin conexión** de canciones o playlists.
   → Hecho: «Descargar» en el menú de canción, botón en álbum y playlist, pestaña Biblioteca ▸ Descargas; se reproducen desde el archivo (`downloads.rs`).
-- [ ] **Widget** de pantalla de inicio con la canción actual y los controles.
+- [x] **Widget** de pantalla de inicio con la canción actual y los controles.
+  → Hecho: `PlayerWidget.kt`, con portada, título, artista y anterior/reproducir/siguiente.
 - [ ] **Android Auto.**
+  → Sin hacer: exige exponer la biblioteca a Android Auto (MediaLibraryService) y solo se puede probar con un coche o su simulador.
 - [x] **Avisar de versiones nuevas de la APK** (por ejemplo, desde las releases de GitHub).
   → Hecho: consulta las releases de `Darwin2996/limusic-movil`, descarga la APK y abre el instalador de Android. Se publica con `scripts/android-release.ps1`.
 

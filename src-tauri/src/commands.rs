@@ -719,6 +719,29 @@ pub fn list_downloads(app: tauri::AppHandle) -> serde_json::Value {
     })
 }
 
+/// Android: fill or empty the heart on the media notification and lock screen.
+#[tauri::command]
+pub fn set_notification_liked(state: St<'_>, liked: bool) {
+    #[cfg(target_os = "android")]
+    let _ = state.player.set_liked(liked);
+    #[cfg(not(target_os = "android"))]
+    let _ = (state, liked);
+}
+
+/// Android: a link shared to LiMusic from another app ("Share" or "Open with"), handed over once.
+#[tauri::command]
+pub async fn take_shared_link(app: tauri::AppHandle) -> Option<String> {
+    #[cfg(target_os = "android")]
+    {
+        return crate::android_take_shared_link(&app).await;
+    }
+    #[cfg(not(target_os = "android"))]
+    {
+        let _ = app;
+        None
+    }
+}
+
 /// Wipe both cache tiers (URL cache + mpv on-disk audio cache). context/14.
 #[tauri::command]
 pub async fn clear_caches(state: St<'_>) -> Result<(), String> {

@@ -6,10 +6,10 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
-	import { onOpenLink, takeLaunchArgs } from '$lib/api';
+	import { onOpenLink, takeLaunchArgs, takeSharedLink } from '$lib/api';
 	import { hrefFor } from '$lib/browse';
 	import { parseYtLink, type LinkTarget } from '$lib/ytlink';
-	import { startRadio, toast, ui } from '$lib/player.svelte';
+	import { isAndroid, startRadio, toast, ui } from '$lib/player.svelte';
 	import { t } from '$lib/i18n.svelte';
 	import { isSpotifyLink, openSpotifyLink } from '$lib/import.svelte';
 
@@ -58,7 +58,25 @@
 		takeLaunchArgs()
 			.then(fromArgs)
 			.catch(() => {});
-		return () => un.then((u) => u());
+		// Android: a link shared to the app ("Share", "Open with"). Asked at start and each time the
+		// app comes back to the foreground, which is what sharing to it does. Shared text often
+		// wraps the link in a title, so only its first URL counts.
+		const takeShared = () =>
+			takeSharedLink()
+				.then((text) => {
+					const link = text?.match(/https?:\/\/\S+/)?.[0];
+					if (link) fromArgs([link]);
+				})
+				.catch(() => {});
+		const onVisible = () => document.visibilityState === 'visible' && takeShared();
+		if (isAndroid) {
+			takeShared();
+			document.addEventListener('visibilitychange', onVisible);
+		}
+		return () => {
+			un.then((u) => u());
+			document.removeEventListener('visibilitychange', onVisible);
+		};
 	});
 </script>
 

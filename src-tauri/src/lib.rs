@@ -131,6 +131,19 @@ async fn pick_android_local_folder(app: tauri::AppHandle) -> Result<Option<Strin
     }
 }
 
+/// The link last shared to the app from another one, if any (`SharedLinks` in Kotlin).
+#[cfg(target_os = "android")]
+pub(crate) async fn android_take_shared_link(app: &tauri::AppHandle) -> Option<String> {
+    let plugin = app.state::<AndroidPlayerPluginHandle>().0.clone();
+    plugin
+        .run_mobile_plugin_async::<serde_json::Value>("takeSharedLink", serde_json::json!({}))
+        .await
+        .ok()?
+        .get("text")?
+        .as_str()
+        .map(str::to_owned)
+}
+
 /// Drive the off-screen session-refresh WebView (`GoogleSessionRefresher` in Kotlin) with one of
 /// `openGoogleRefresh`, `readGoogleCookies` or `closeGoogleRefresh`.
 #[cfg(target_os = "android")]
@@ -1387,6 +1400,8 @@ pub fn run() {
             commands::download_song,
             commands::remove_download,
             commands::list_downloads,
+            commands::set_notification_liked,
+            commands::take_shared_link,
             commands::set_app_icon,
             commands::app_icon_path,
             commands::get_account,
@@ -1701,6 +1716,12 @@ fn spawn_event_pump(
                 }
                 PlayerEvent::Next => state.next_in_queue().await,
                 PlayerEvent::Previous => state.prev_in_queue().await,
+                // The notification's heart: the UI rates the track, as its own heart does, so the
+                // library caches and the notification stay in step (`set_notification_liked`).
+                #[cfg(target_os = "android")]
+                PlayerEvent::LikeToggled => {
+                    let _ = app.emit("notification-like", ());
+                }
             }
         }
     });

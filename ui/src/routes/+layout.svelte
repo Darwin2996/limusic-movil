@@ -57,13 +57,26 @@
 	import CommandPalette from '$lib/components/CommandPalette.svelte';
 	import KeyboardShortcuts from '$lib/components/KeyboardShortcuts.svelte';
 	import { Button } from '$lib/components/ui/button';
-	import { auth, initApp, isAndroid, np, playback, prefs, refreshView, toast, ui } from '$lib/player.svelte';
+	import {
+		auth,
+		initApp,
+		isAndroid,
+		np,
+		playback,
+		prefs,
+		refreshView,
+		toast,
+		toggleNowPlayingRating,
+		ui
+	} from '$lib/player.svelte';
 	import {
 		androidMoveToBackground,
 		installApkUpdate,
 		isLocalId,
+		onNotificationLike,
 		openExternal,
-		setMetered
+		setMetered,
+		setNotificationLiked
 	} from '$lib/api';
 	import { checkApkUpdate, dismissApkUpdate, type ApkRelease } from '$lib/apkupdate';
 	import { initDownloads } from '$lib/downloads.svelte';
@@ -127,6 +140,11 @@
 
 	// Pages reached from another one, which a phone needs a visible way back from.
 	const hasBackBar = $derived(/^\/(artist|album|playlist|list|history)(\/|$)/.test(page.url.pathname));
+
+	// Android: the notification's heart follows the playing track's rating.
+	$effect(() => {
+		if (isAndroid && playback.now) setNotificationLiked(playback.rating === 'like').catch(() => {});
+	});
 
 	// Pull to refresh on a phone's Home and Library: drag down from the very top past PULL_AT and
 	// let go. Passive throughout: the page's own scrolling is never held up for it.
@@ -300,6 +318,8 @@
 		const updateTimer = isAndroid ? undefined : setInterval(checkForUpdatesQuiet, QUIET_INTERVAL_MS);
 		const teardownApp = initApp();
 		const teardownDownloads = isAndroid ? initDownloads() : null;
+		// The notification's heart rates the track the way the player's own heart does.
+		const likeListener = isAndroid ? onNotificationLike(() => toggleNowPlayingRating('like')) : null;
 		const teardownZoom = initZoom();
 		const teardownShortcuts = initShortcuts();
 		initImport();
@@ -307,6 +327,7 @@
 			clearInterval(updateTimer);
 			backListener?.then((l) => l.unregister());
 			teardownDownloads?.();
+			likeListener?.then((u) => u());
 			connection?.removeEventListener('change', reportNetwork);
 			teardownApp();
 			teardownWin();

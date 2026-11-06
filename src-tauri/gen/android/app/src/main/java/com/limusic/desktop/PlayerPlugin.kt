@@ -135,6 +135,12 @@ class PlayerPlugin(private val activity: Activity) : Plugin(activity) {
     invoke.resolveObject(mapOf("cookie" to cookie))
   }
 
+  /** The link last shared to LiMusic, handed over once (`SharedLinks`). */
+  @Command
+  fun takeSharedLink(invoke: Invoke) {
+    invoke.resolveObject(mapOf("text" to SharedLinks.take()))
+  }
+
   /** Download a release APK and open Android's installer (`ApkUpdater`). Resolves once the
    * installer is up; rejects with `INSTALL_PERMISSION` or the download error. */
   @Command
@@ -358,6 +364,7 @@ class PlayerPlugin(private val activity: Activity) : Plugin(activity) {
       "setVolume" -> PlaybackService.setVolumePercent(args.volume)
       "setGain" -> PlaybackService.setGainDb(args.gainDb)
       "setSpeed" -> player.setPlaybackSpeed(args.speed.toFloat().coerceIn(0.25f, 2.0f))
+      "setLiked" -> PlaybackService.setLiked(args.on)
       "setLoopFile" -> player.repeatMode = if (args.on) androidx.media3.common.Player.REPEAT_MODE_ONE else androidx.media3.common.Player.REPEAT_MODE_OFF
       "setMetadata" -> {
         val index = player.currentMediaItemIndex

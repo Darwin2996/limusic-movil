@@ -876,6 +876,14 @@ export const setMetered = (metered: boolean) => invoke<void>('set_metered', { me
 /** Android: download a release APK and open the system installer (`INSTALL_PERMISSION` error
  *  while installs from the app still have to be allowed). */
 export const installApkUpdate = (url: string) => invoke<void>('install_apk_update', { url });
+/** Android: fill or empty the heart on the media notification (the current track's rating). */
+export const setNotificationLiked = (liked: boolean) =>
+	invoke<void>('set_notification_liked', { liked });
+/** Android: the notification's heart was tapped; the UI rates the track. */
+export const onNotificationLike = (cb: () => void): Promise<UnlistenFn> =>
+	listen('notification-like', () => cb());
+/** Android: a link shared to LiMusic from another app, handed over once (null if none). */
+export const takeSharedLink = () => invoke<string | null>('take_shared_link');
 /** Android only: send the app to the background, as Back does on the first page. */
 export const androidMoveToBackground = () => invoke<void>('android_move_to_background');
 /** Whether Android exempts the app from battery optimization (always true off Android). */

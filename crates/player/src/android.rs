@@ -35,6 +35,8 @@ pub enum PlayerEvent {
     Error(String),
     Next,
     Previous,
+    /// The heart on the media notification or lock screen was tapped (PlaybackService).
+    LikeToggled,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -64,6 +66,8 @@ pub enum PlayerCommand {
         album: Option<String>,
         artwork: Option<String>,
     },
+    /// Whether the media notification's heart is filled: the current track's rating.
+    SetLiked { on: bool },
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -259,6 +263,11 @@ impl Player {
         })
     }
 
+    /// Fill (or empty) the heart on the media notification and lock screen.
+    pub fn set_liked(&self, on: bool) -> Result<(), Error> {
+        self.send(PlayerCommand::SetLiked { on })
+    }
+
     pub fn set_video_for(&self, _audio_url: &str, _video_url: &str) {}
 
     pub fn current_path(&self) -> Option<String> {
@@ -288,6 +297,7 @@ impl PlayerMonitor {
                 )),
                 "next" => Some(PlayerEvent::Next),
                 "previous" => Some(PlayerEvent::Previous),
+                "like" => Some(PlayerEvent::LikeToggled),
                 _ => None,
             };
             if let Some(event) = event {
