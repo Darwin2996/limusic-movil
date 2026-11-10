@@ -417,6 +417,11 @@
 					desc: t('settings.themes.now_playing_pill_hint'),
 					control: nowPlayingPillSwitch
 				})}
+				{@render row({
+					title: t('settings.themes.saved_mark'),
+					desc: t('settings.themes.saved_mark_hint'),
+					control: savedMarkSwitch
+				})}
 			</div>
 		</section>
 
@@ -689,6 +694,10 @@
 {#snippet nowPlayingPillSwitch()}<Switch
 		checked={appearance.nowPlayingPill}
 		onCheckedChange={(on) => setAppearance({ nowPlayingPill: on })}
+	/>{/snippet}
+{#snippet savedMarkSwitch()}<Switch
+		checked={appearance.savedMark}
+		onCheckedChange={(on) => setAppearance({ savedMark: on })}
 	/>{/snippet}
 {#snippet classicPlayerSwitch()}<Switch
 		checked={appearance.classicPlayer}

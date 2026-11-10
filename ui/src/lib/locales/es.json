@@ -448,7 +448,9 @@
 				"minimal": "Minimalista",
 				"classic": "Clásico",
 				"square": "Cuadrado"
-			}
+			},
+			"saved_mark": "Marcar canciones guardadas",
+			"saved_mark_hint": "Muestra un tick en las canciones que ya están en alguna de tus playlists."
 		},
 		"playback": {
 			"audio_quality": "Calidad de audio",
@@ -1424,6 +1426,24 @@
 		"their_playlists": "Sus playlists",
 		"playlist_tracks": "{count} canciones",
 		"playlist_empty": "Esta playlist está vacía.",
+		"view_profile": "Ver perfil",
+		"my_profile": "Ver mi perfil",
+		"cancel_request": "Cancelar solicitud",
+		"now_playing": "Escuchando ahora",
+		"last_played": "Lo último que escuchó",
+		"public_profile": "Perfil público",
+		"public_profile_hint": "Cualquiera con LiMusic verá tus playlists compartidas y tus estadísticas. Desactivado, solo tus amigos. Lo que escuchas ahora siempre lo ven solo tus amigos.",
+		"private_profile": "Este perfil es solo para sus amigos. Añádelo como amigo para ver sus playlists y estadísticas.",
+		"compatibility": "Compatibilidad musical",
+		"compatibility_artists": "Coincidís en {artists}.",
+		"compatibility_none": "Aún no tenéis artistas en común.",
+		"songs_in_common": "Canciones en común",
+		"their_stats": "Estadísticas",
+		"stats_empty_title": "Aún no hay estadísticas",
+		"stats_empty": "Todavía no ha escuchado nada con LiMusic.",
+		"stats_updated": "Actualizado {when}. Contado en su teléfono.",
+		"stats_none": "Todavía no ha publicado estadísticas.",
+		"your_playlists": "Tus playlists compartidas",
 		"errors": {
 			"username_taken": "Ese nombre de usuario ya existe.",
 			"username_invalid": "Usa de 3 a 20 letras, números, puntos o guiones bajos.",

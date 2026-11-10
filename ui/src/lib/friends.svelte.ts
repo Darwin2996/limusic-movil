@@ -9,6 +9,7 @@ import { createClient, type RealtimeChannel, type SupabaseClient } from '@supaba
 import * as api from '$lib/api';
 import { lt, makeInvite, parseInvite, inRoom } from '$lib/lt.svelte';
 import { auth, ui } from '$lib/player.svelte';
+import { RANGES, rangeStart, type Range } from '$lib/stats';
 
 /** The project (Project Settings ▸ API). The anon key is meant to ship in the app: what it can do is
  *  bounded by the row level security in supabase/amigos.sql. Empty: friends are switched off. */
@@ -24,6 +25,8 @@ export type Profile = {
 	color: string;
 	/** Their photo (an upload, or their Google picture); null shows the colored initial. */
 	avatar_url: string | null;
+	/** Anyone signed in sees their playlists and stats; otherwise only friends do. */
+	public_profile: boolean;
 };
 export type NowPlaying = {
 	user_id: string;
@@ -50,6 +53,14 @@ export type SharedPlaylist = {
 	track_count: number;
 	updated_at: string;
 };
+/** What a profile shows of someone's listening: the stats page for each range, as their phone
+ *  counted it, and their 50 most played artists of all time for the compatibility score. */
+export type PublishedStats = {
+	ranges: Record<Range, api.ListeningStats>;
+	artists: api.TopArtist[];
+};
+/** How alike two people's listening is: a 0-100 score and what they have in common. */
+export type Compatibility = { score: number; artists: string[]; songs: api.SongItem[] };
 /** A shared track: the fields a friend needs to see and play it. */
 export type SharedTrack = Pick<api.SongItem, 'video_id' | 'title' | 'artists' | 'thumbnail' | 'duration'>;
 
@@ -62,6 +73,8 @@ const NO_GOOGLE_AVATAR_KEY = 'friends_no_google_avatar';
 const RESHARE_AFTER_MS = 12 * 60 * 60 * 1000;
 const MAX_SHARED_TRACKS = 1000;
 const SHARED_LIST_COLUMNS = 'owner, source_id, title, thumbnail, track_count, updated_at';
+/** How often the stats are published again while the app is open. */
+const STATS_EVERY_MS = 30 * 60 * 1000;
 
 class Friends {
 	/** Signed in and the profile (or its absence) known. */
@@ -140,8 +153,11 @@ async function loadMe() {
 		subscribe();
 		useGoogleAvatarByDefault().catch(() => {});
 		refreshShared().catch(() => {});
+		publishStats().catch(() => {});
+		statsTimer ??= setInterval(() => publishStats().catch(() => {}), STATS_EVERY_MS);
 	}
 }
+let statsTimer: ReturnType<typeof setInterval> | undefined;
 
 /** Pick the @username (and a display name) the first time. Throws `username_taken` or
  *  `username_invalid` for the form to show. */
@@ -156,7 +172,7 @@ export async function createProfile(username: string, displayName: string) {
 }
 
 export async function updateProfile(
-	patch: Partial<Pick<Profile, 'display_name' | 'bio' | 'color' | 'avatar_url'>>
+	patch: Partial<Pick<Profile, 'display_name' | 'bio' | 'color' | 'avatar_url' | 'public_profile'>>
 ) {
 	const me = friends.me;
 	if (!me) return;
@@ -323,6 +339,107 @@ export async function sharedPlaylistTracks(owner: string, sourceId: string): Pro
 		.maybeSingle();
 	if (error) throw error;
 	return (data?.tracks ?? []) as SharedTrack[];
+}
+
+/** The fields of a song a profile needs to show and play it. */
+const slimSong = (s: api.SongItem): api.SongItem => ({
+	video_id: s.video_id,
+	title: s.title,
+	artists: s.artists,
+	artist_id: s.artist_id,
+	album: s.album,
+	album_id: s.album_id,
+	thumbnail: s.thumbnail,
+	duration: s.duration
+});
+
+/** Publish this phone's listening stats for the profile, every range the stats page has. Songs
+ *  that are files on this phone stay out of the lists: nobody else could play them. */
+export async function publishStats() {
+	const me = friends.me;
+	if (!me) return;
+	const ranges = {} as Record<Range, api.ListeningStats>;
+	for (const r of RANGES) {
+		const st = await api.listeningStats(rangeStart(r));
+		ranges[r] = {
+			...st,
+			topSongs: st.topSongs
+				.filter((x) => !api.isLocalId(x.song.video_id))
+				.map((x) => ({ ...x, song: slimSong(x.song) })),
+			topArtists: st.topArtists.filter((a) => !a.id || !api.isLocalId(a.id)),
+			topAlbums: st.topAlbums.filter((a) => !api.isLocalId(a.id))
+		};
+	}
+	const artists = (await api.topArtists(50)).filter((a) => !a.id || !api.isLocalId(a.id));
+	const data: PublishedStats = { ranges, artists };
+	const { error } = await db()
+		.from('profile_stats')
+		.upsert({ owner: me.id, data, updated_at: new Date().toISOString() });
+	if (error) throw error;
+}
+
+export async function setPublicProfile(on: boolean) {
+	await updateProfile({ public_profile: on });
+}
+
+/** Someone's profile by @username, or null when there is nobody by that name. */
+export async function profileByUsername(username: string): Promise<Profile | null> {
+	const { data, error } = await db()
+		.from('profiles')
+		.select('*')
+		.eq('username', username.trim().replace(/^@/, ''))
+		.maybeSingle();
+	if (error) throw error;
+	return data as Profile | null;
+}
+
+/** Someone's published stats, or null when they have none or their profile is closed to you. */
+export async function profileStats(id: string): Promise<{ data: PublishedStats; updated_at: string } | null> {
+	const { data, error } = await db()
+		.from('profile_stats')
+		.select('data, updated_at')
+		.eq('owner', id)
+		.maybeSingle();
+	if (error) throw error;
+	return data as { data: PublishedStats; updated_at: string } | null;
+}
+
+const artistKey = (a: api.TopArtist) => a.id ?? a.name.trim().toLowerCase();
+
+/**
+ * How alike two people's listening is, from their all-time top artists and songs: for each one they
+ * share, the smaller of the two shares of listening time it has, summed. Two lists with nothing in
+ * common score 0, identical ones 100. The square root spreads the low end out, where most pairs
+ * land, so a few artists in common doesn't read as almost nothing.
+ */
+export function compatibility(a: PublishedStats, b: PublishedStats): Compatibility {
+	function overlap<T>(x: T[], y: T[], key: (t: T) => string, secs: (t: T) => number) {
+		const total = (l: T[]) => l.reduce((n, t) => n + secs(t), 0) || 1;
+		const [tx, ty] = [total(x), total(y)];
+		const theirs = new Map(y.map((t) => [key(t), secs(t) / ty]));
+		let score = 0;
+		const common: T[] = [];
+		for (const t of x) {
+			const other = theirs.get(key(t));
+			if (other === undefined) continue;
+			score += Math.min(secs(t) / tx, other);
+			common.push(t);
+		}
+		return { score, common };
+	}
+	const artists = overlap(a.artists, b.artists, artistKey, (t) => t.secs);
+	const songs = overlap(
+		a.ranges.all.topSongs,
+		b.ranges.all.topSongs,
+		(t) => t.song.video_id,
+		(t) => t.secs
+	);
+	const raw = 0.7 * artists.score + 0.3 * songs.score;
+	return {
+		score: Math.round(Math.sqrt(raw) * 100),
+		artists: artists.common.map((t) => t.name),
+		songs: songs.common.map((t) => t.song)
+	};
 }
 
 export async function loadFriends() {

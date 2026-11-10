@@ -15,6 +15,7 @@
 	import { thumb } from '$lib/thumb';
 	import { lt } from '$lib/lt.svelte';
 	import { goto } from '$app/navigation';
+	import { appearance } from '$lib/theme.svelte';
 	import { anySaved, isLiked, openAddManyToPlaylist, ratingOf, savedPlaylists, toast, toggleRating } from '$lib/player.svelte';
 	import { addedLabel, addedTitle, CELL, END, TITLE, type TrackColumn } from '$lib/trackcolumns';
 	import { tagOf } from '$lib/stats';
@@ -441,7 +442,7 @@
 		     The checkmark's slot only exists once something is indexed: signed out, or before the
 		     first crawl, reserving it would be a hole on every row that can never fill. -->
 		{#snippet saved()}
-			{#if showRating && anySaved()}
+			{#if showRating && appearance.savedMark && anySaved()}
 				<span class="flex h-7 w-7 shrink-0 items-center justify-center">
 					{#if inPlaylists.length}
 						<SavedInPlaylists playlists={inPlaylists} />

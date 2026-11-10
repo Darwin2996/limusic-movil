@@ -356,3 +356,18 @@ Detalle y estado de cada tarea en `TAREAS_MOVIL.md`. Resumen de lo aplicado:
   avisa de cuántas. También se puede guardar en el teléfono, como antes.
 - [x] Probado en el teléfono (ADB): 15 de 15 canciones locales encontraron su versión correcta; el
   diálogo deja elegir YouTube Music. Falta probar la creación de la playlist en la cuenta.
+
+## Perfiles completos, compatibilidad y ajustes (10/11/2026)
+
+- [x] Perfil propio de cada usuario (`/friends/@usuario`): foto, bio, acciones según la relación,
+  lo que escucha (solo amigos), compatibilidad musical (% con artistas y canciones en común), sus
+  playlists compartidas y todas sus estadísticas (la misma vista que la pantalla Estadísticas, ahora
+  componente `StatsView`).
+- [x] Cada usuario elige si su perfil es público o solo para amigos (`supabase/amigos-3.sql`:
+  `public_profile`, `profile_stats`, `can_see_profile`). Las estadísticas se publican al abrir la app
+  y cada 30 min, sin archivos locales.
+- [x] Sugerencias de playlist en el móvil: «Añadir» solo con el icono y sin duración, para que el
+  título se lea.
+- [x] El tick de «ya está en tus playlists» queda desactivado por defecto, con ajuste en Apariencia.
+- [x] Probado en el teléfono (ADB): estadísticas publicadas, perfil propio y de un amigo correctos.
+  La compatibilidad necesita que el amigo actualice y publique sus estadísticas.

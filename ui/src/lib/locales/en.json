@@ -569,7 +569,9 @@
 				"minimal": "Minimal",
 				"classic": "Classic",
 				"square": "Square"
-			}
+			},
+			"saved_mark": "Mark saved songs",
+			"saved_mark_hint": "Shows a check on songs that are already in one of your playlists."
 		},
 		"playback": {
 			"audio_quality": "Audio quality",
@@ -1424,6 +1426,24 @@
 		"their_playlists": "Their playlists",
 		"playlist_tracks": "{count} songs",
 		"playlist_empty": "This playlist is empty.",
+		"view_profile": "View profile",
+		"my_profile": "My profile",
+		"cancel_request": "Cancel request",
+		"now_playing": "Listening now",
+		"last_played": "Last played",
+		"public_profile": "Public profile",
+		"public_profile_hint": "Anyone on LiMusic sees your shared playlists and your stats. Off, only your friends do. What you're playing right now is always for friends only.",
+		"private_profile": "This profile is for their friends only. Add them as a friend to see their playlists and stats.",
+		"compatibility": "Music compatibility",
+		"compatibility_artists": "You both listen to {artists}.",
+		"compatibility_none": "No artists in common yet.",
+		"songs_in_common": "Songs in common",
+		"their_stats": "Stats",
+		"stats_empty_title": "No stats yet",
+		"stats_empty": "They haven't listened to anything on LiMusic yet.",
+		"stats_updated": "Updated {when}. Counted on their phone.",
+		"stats_none": "They haven't published any stats yet.",
+		"your_playlists": "Your shared playlists",
 		"errors": {
 			"username_taken": "That username is taken.",
 			"username_invalid": "Use 3 to 20 letters, numbers, dots or underscores.",

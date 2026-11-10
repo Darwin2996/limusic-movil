@@ -141,6 +141,9 @@ export const appearance = $state({
 	/** The "Now playing" pill a list floats over its rows while the playing one is off screen, in
 	 *  the queue and on a playlist (#366). Off for whoever finds it in the way. */
 	nowPlayingPill: true,
+	/** The check on a track row saying the song is already in one of your playlists. Off by
+	 *  default: inside a playlist it marks every row, which says nothing. */
+	savedMark: false,
 	/** The original now-playing view, before the redesign (title and album under the picture, a
 	 *  lit backdrop, a full-height queue/lyrics column) became the default. A new key rather than
 	 *  `stagePlayer` flipped: that one was saved as `false` for everyone, so a new default would
@@ -576,6 +579,7 @@ export function initTheme(): void {
 			'artworkBackground',
 			'blurPlaylistHeader',
 			'nowPlayingPill',
+			'savedMark',
 			'classicPlayer',
 			'tabbedPlayer',
 			'openPlayerOnPlay',
