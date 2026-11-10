@@ -1,29 +1,48 @@
 <script lang="ts">
-	// Friends: your LiMusic profile, adding friends by @username, requests, what each friend is
-	// playing, and each friend's profile with "Invite to Listen Together". The data and its privacy
-	// rules live in lib/friends.svelte.ts and supabase/amigos.sql.
+	// Friends: your LiMusic profile (photo, the playlists you share), adding friends by @username,
+	// requests, what each friend is playing, and each friend's profile with their shared playlists and
+	// "Invite to Listen Together". The data and its privacy rules live in lib/friends.svelte.ts and
+	// supabase/amigos.sql + amigos-2.sql.
 	import { HugeiconsIcon } from '@hugeicons/svelte';
-	import { UserAdd01Icon, PlayIcon, UserGroup02Icon } from '@hugeicons/core-free-icons';
+	import {
+		ArrowLeft01Icon,
+		MusicNote01Icon,
+		PlayIcon,
+		UserAdd01Icon,
+		UserGroup02Icon
+	} from '@hugeicons/core-free-icons';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Button } from '$lib/components/ui/button';
 	import { Input } from '$lib/components/ui/input';
 	import { Switch } from '$lib/components/ui/switch';
-	import { playSong, toast } from '$lib/player.svelte';
+	import { auth, openPlayer, playSong, toast } from '$lib/player.svelte';
+	import * as api from '$lib/api';
 	import { thumb } from '$lib/thumb';
 	import { t } from '$lib/i18n.svelte';
 	import {
 		acceptFriend,
 		addFriend,
 		createProfile,
+		friendPlaylists,
 		friends,
 		friendsConfigured,
+		hasGooglePicture,
 		inviteFriend,
+		removeAvatar,
 		removeFriend,
 		setSharing,
+		sharedPlaylistTracks,
+		sharePlaylist,
+		unsharePlaylist,
 		updateProfile,
+		uploadAvatar,
+		useGoogleAvatar,
+		useGoogleAvatarByDefault,
 		type Friend,
 		type NowPlaying,
-		type Profile
+		type Profile,
+		type SharedPlaylist,
+		type SharedTrack
 	} from '$lib/friends.svelte';
 
 	const COLORS = ['#7c3aed', '#db2777', '#ea580c', '#16a34a', '#0891b2', '#2563eb'];
@@ -37,10 +56,48 @@
 	let editBio = $state('');
 	let open = $state<Friend | null>(null);
 	let now = $state(Date.now());
+	let photoInput = $state<HTMLInputElement>();
+	/** "Share playlists": the library's playlists, loaded when the dialog opens. */
+	let choosing = $state(false);
+	let library = $state<api.BrowseItem[] | null>(null);
+	/** The playlist being copied or removed right now, which disables its switch. */
+	let sharingId = $state<string | null>(null);
+	/** The open friend's shared playlists, and the one opened from them with its tracks. */
+	let theirPlaylists = $state<SharedPlaylist[] | null>(null);
+	let openList = $state<SharedPlaylist | null>(null);
+	let openTracks = $state<SharedTrack[] | null>(null);
 
 	$effect(() => {
 		const tick = setInterval(() => (now = Date.now()), 30_000);
 		return () => clearInterval(tick);
+	});
+
+	// The account can arrive after the profile did: give it its Google picture then.
+	$effect(() => {
+		if (auth.account?.signedIn && friends.me) useGoogleAvatarByDefault().catch(() => {});
+	});
+
+	// Opening a friend loads what they share; closing forgets it.
+	$effect(() => {
+		const f = open;
+		theirPlaylists = null;
+		openList = null;
+		openTracks = null;
+		if (!f || f.status !== 'accepted') return;
+		friendPlaylists(f.profile.id)
+			.then((lists) => open === f && (theirPlaylists = lists))
+			.catch(() => open === f && (theirPlaylists = []));
+	});
+
+	$effect(() => {
+		if (!choosing || library) return;
+		api
+			.getLibrary()
+			.then((items) => (library = items.filter((i) => i.kind === 'playlist')))
+			.catch((e) => {
+				toast.error(t('friends.errors.generic', { error: String(e) }));
+				choosing = false;
+			});
 	});
 
 	const accepted = $derived(friends.list.filter((f) => f.status === 'accepted'));
@@ -88,16 +145,67 @@
 		if (!n.video_id || !n.title) return;
 		playSong({ video_id: n.video_id, title: n.title, artists: n.artist ?? '', thumbnail: n.thumbnail ?? undefined });
 	}
+
+	async function pickPhoto(e: Event) {
+		const input = e.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		input.value = '';
+		if (file) await run(() => uploadAvatar(file), t('friends.photo_saved'));
+	}
+
+	async function toggleShared(item: api.BrowseItem, on: boolean) {
+		sharingId = item.id;
+		await run(() => (on ? sharePlaylist(item) : unsharePlaylist(item.id)));
+		sharingId = null;
+	}
+
+	async function showList(list: SharedPlaylist) {
+		openList = list;
+		openTracks = null;
+		try {
+			openTracks = await sharedPlaylistTracks(list.owner, list.source_id);
+		} catch (e) {
+			toast.error(t('friends.errors.generic', { error: String(e) }));
+			openList = null;
+		}
+	}
+
+	/** Play a friend's playlist from `start`, as its own queue named after it. */
+	function playList(list: SharedPlaylist, tracks: SharedTrack[], start: number | null) {
+		if (!tracks.length) return;
+		openPlayer();
+		api.playPlaylist(tracks, start, undefined, list.title).catch((e) => toast.error(String(e)));
+	}
 </script>
 
 {#snippet avatar(p: Profile, size: string)}
-	<span
-		class="flex shrink-0 items-center justify-center rounded-full font-heading font-bold text-white {size}"
-		style="background:{p.color}"
-		aria-hidden="true"
-	>
-		{(p.display_name || p.username).trim()[0]?.toUpperCase() ?? '?'}
-	</span>
+	{#if p.avatar_url}
+		<img
+			src={p.avatar_url}
+			alt=""
+			class="shrink-0 rounded-full object-cover {size}"
+			style="background:{p.color}"
+			referrerpolicy="no-referrer"
+		/>
+	{:else}
+		<span
+			class="flex shrink-0 items-center justify-center rounded-full font-heading font-bold text-white {size}"
+			style="background:{p.color}"
+			aria-hidden="true"
+		>
+			{(p.display_name || p.username).trim()[0]?.toUpperCase() ?? '?'}
+		</span>
+	{/if}
+{/snippet}
+
+{#snippet listCover(thumbnail: string | null | undefined)}
+	{#if thumbnail}
+		<img src={thumb(thumbnail, 96)} alt="" class="size-12 shrink-0 rounded-md object-cover" />
+	{:else}
+		<span class="flex size-12 shrink-0 items-center justify-center rounded-md bg-muted">
+			<HugeiconsIcon icon={MusicNote01Icon} class="h-5 w-5 text-muted-foreground" />
+		</span>
+	{/if}
 {/snippet}
 
 {#snippet friendRow(f: Friend)}
@@ -166,6 +274,25 @@
 				{/if}
 			</div>
 			{#if editing}
+				<div class="flex flex-wrap gap-2" role="group" aria-label={t('friends.photo')}>
+					<input bind:this={photoInput} type="file" accept="image/*" class="hidden" onchange={pickPhoto} />
+					<Button variant="outline" class="min-h-11" disabled={busy} onclick={() => photoInput?.click()}>
+						{t('friends.photo_upload')}
+					</Button>
+					{#if hasGooglePicture()}
+						<Button
+							variant="outline"
+							class="min-h-11"
+							disabled={busy}
+							onclick={() => run(useGoogleAvatar, t('friends.photo_saved'))}>{t('friends.photo_google')}</Button
+						>
+					{/if}
+					{#if me.avatar_url}
+						<Button variant="ghost" class="min-h-11" disabled={busy} onclick={() => run(removeAvatar)}>
+							{t('friends.photo_remove')}
+						</Button>
+					{/if}
+				</div>
 				<label class="flex flex-col gap-1 text-sm">
 					{t('friends.display_name')}
 					<Input bind:value={editName} maxlength={40} class="h-11" />
@@ -207,6 +334,15 @@
 					<span class="block text-xs text-muted-foreground">{t('friends.share_hint')}</span>
 				</span>
 				<Switch checked={friends.sharing} onCheckedChange={(on) => run(() => setSharing(on))} />
+			</div>
+			<div class="flex items-center justify-between gap-4">
+				<span class="text-sm">
+					<span class="block font-medium">{t('friends.playlists_shared', { count: friends.shared.length })}</span>
+					<span class="block text-xs text-muted-foreground">{t('friends.playlists_hint')}</span>
+				</span>
+				<Button variant="outline" size="sm" class="min-h-11 shrink-0" onclick={() => (choosing = true)}>
+					{t('friends.playlists_choose')}
+				</Button>
 			</div>
 		</section>
 
@@ -287,7 +423,53 @@
 				{#if f.profile.bio}<p class="text-sm">{f.profile.bio}</p>{/if}
 			</div>
 			{#if f.status === 'accepted'}
-				{#if f.nowPlaying?.title}
+				{#if openList}
+					{@const list = openList}
+					<div class="flex items-center gap-2">
+						<Button
+							variant="ghost"
+							size="icon"
+							class="size-11 shrink-0"
+							aria-label={t('common.back')}
+							onclick={() => (openList = null)}
+						>
+							<HugeiconsIcon icon={ArrowLeft01Icon} class="h-5 w-5" />
+						</Button>
+						<span class="min-w-0 flex-1 truncate font-medium">{list.title}</span>
+						<Button
+							class="min-h-11 shrink-0"
+							disabled={!openTracks?.length}
+							onclick={() => openTracks && playList(list, openTracks, null)}
+						>
+							<HugeiconsIcon icon={PlayIcon} class="h-4 w-4" />
+							{t('player.play')}
+						</Button>
+					</div>
+					<div class="-mx-2 max-h-[45vh] overflow-y-auto">
+						{#if !openTracks}
+							<p class="p-2 text-sm text-muted-foreground">{t('common.loading')}</p>
+						{:else}
+							{#each openTracks as track, i (i)}
+								<button
+									type="button"
+									class="flex w-full min-w-0 items-center gap-3 rounded-lg p-2 text-left hover:bg-muted"
+									onclick={() => playList(list, openTracks!, i)}
+								>
+									{@render listCover(track.thumbnail)}
+									<span class="min-w-0 flex-1">
+										<span class="block truncate text-sm font-medium">{track.title}</span>
+										<span class="block truncate text-xs text-muted-foreground">{track.artists}</span>
+									</span>
+									{#if track.duration}
+										<span class="shrink-0 text-xs text-muted-foreground tabular-nums">{track.duration}</span>
+									{/if}
+								</button>
+							{:else}
+								<p class="p-2 text-sm text-muted-foreground">{t('friends.playlist_empty')}</p>
+							{/each}
+						{/if}
+					</div>
+				{:else if f.nowPlaying?.title}
 					{@const n = f.nowPlaying}
 					<div class="flex items-center gap-3 rounded-xl border p-3">
 						{#if n.thumbnail}
@@ -300,6 +482,28 @@
 							</Button>
 						{/if}
 					</div>
+				{/if}
+				{#if !openList && theirPlaylists?.length}
+					<section class="flex flex-col gap-1">
+						<h3 class="text-sm font-semibold text-muted-foreground">{t('friends.their_playlists')}</h3>
+						<div class="-mx-2 max-h-[35vh] overflow-y-auto">
+							{#each theirPlaylists as list (list.source_id)}
+								<button
+									type="button"
+									class="flex w-full min-w-0 items-center gap-3 rounded-lg p-2 text-left hover:bg-muted"
+									onclick={() => showList(list)}
+								>
+									{@render listCover(list.thumbnail)}
+									<span class="min-w-0 flex-1">
+										<span class="block truncate text-sm font-medium">{list.title}</span>
+										<span class="block truncate text-xs text-muted-foreground">
+											{t('friends.playlist_tracks', { count: list.track_count })}
+										</span>
+									</span>
+								</button>
+							{/each}
+						</div>
+					</section>
 				{/if}
 				<Button
 					class="min-h-11"
@@ -323,5 +527,41 @@
 				{f.status === 'accepted' ? t('friends.remove') : t('common.cancel')}
 			</Button>
 		{/if}
+	</Dialog.Content>
+</Dialog.Root>
+
+<!-- Which of your playlists friends can see -->
+<Dialog.Root open={choosing} onOpenChange={(o) => (choosing = o)}>
+	<Dialog.Content
+		class="sm:max-w-md max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:top-auto max-md:mb-0 max-md:max-w-none max-md:translate-y-0 max-md:rounded-t-3xl max-md:rounded-b-none max-md:pb-[max(env(safe-area-inset-bottom),1rem)]"
+	>
+		<Dialog.Title class="font-heading text-xl">{t('friends.playlists_choose')}</Dialog.Title>
+		<Dialog.Description>{t('friends.playlists_choose_hint')}</Dialog.Description>
+		<div class="-mx-2 max-h-[60vh] overflow-y-auto">
+			{#if !library}
+				<p class="p-2 text-sm text-muted-foreground">{t('common.loading')}</p>
+			{:else}
+				{#each library as item (item.id)}
+					{@const on = friends.shared.some((p) => p.source_id === item.id)}
+					<label class="flex min-w-0 items-center gap-3 rounded-lg p-2 hover:bg-muted">
+						{@render listCover(item.thumbnail)}
+						<span class="min-w-0 flex-1">
+							<span class="block truncate text-sm font-medium">{item.title}</span>
+							{#if item.subtitle}
+								<span class="block truncate text-xs text-muted-foreground">{item.subtitle}</span>
+							{/if}
+						</span>
+						<Switch
+							checked={on}
+							disabled={sharingId !== null}
+							aria-label={item.title}
+							onCheckedChange={(v) => toggleShared(item, v)}
+						/>
+					</label>
+				{:else}
+					<p class="p-2 text-sm text-muted-foreground">{t('friends.no_playlists')}</p>
+				{/each}
+			{/if}
+		</div>
 	</Dialog.Content>
 </Dialog.Root>

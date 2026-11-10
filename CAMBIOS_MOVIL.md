@@ -327,3 +327,19 @@ Detalle y estado de cada tarea en `TAREAS_MOVIL.md`. Resumen de lo aplicado:
 - [x] Las llamadas ya pausaban y reanudaban por el foco de audio; ahora el audio se declara como música.
 - [ ] Sin probar en el teléfono. Si Android cierra la app mientras está en pausa mucho tiempo, no
   podrá reanudar al conectar (la exención de batería ayuda).
+
+## Foto de perfil y playlists compartidas (10/11/2026)
+
+- [x] Foto de perfil en Amigos: por defecto la de la cuenta de Google; se puede subir otra desde la
+  galería (recortada a un cuadrado de 256 px, guardada en Supabase Storage) o quitarla. Si se quita,
+  la de Google no vuelve sola.
+- [x] Playlists compartidas: en tu perfil eliges qué playlists de tu biblioteca ven tus amigos. Se
+  sube una copia de sus canciones (hasta 1000; las de archivos locales no), así que tus amigos las
+  ven y reproducen aunque en YouTube sean privadas. Las copias se actualizan al abrir la app si
+  tienen más de 12 horas.
+- [x] Perfil de un amigo: muestra su foto, sus playlists compartidas y sus canciones; se puede
+  reproducir la lista entera o desde una canción.
+- [x] Nuevo `supabase/amigos-2.sql` (columna `avatar_url`, bucket `avatars`, tabla
+  `shared_playlists` con reglas para que solo los amigos aceptados vean las listas). Hay que
+  ejecutarlo una vez en el SQL Editor de Supabase.
+- [ ] Sin probar en el teléfono; la parte de amigos necesita dos móviles.
