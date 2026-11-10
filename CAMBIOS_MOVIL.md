@@ -343,3 +343,16 @@ Detalle y estado de cada tarea en `TAREAS_MOVIL.md`. Resumen de lo aplicado:
   `shared_playlists` con reglas para que solo los amigos aceptados vean las listas). Hay que
   ejecutarlo una vez en el SQL Editor de Supabase.
 - [ ] Sin probar en el teléfono; la parte de amigos necesita dos móviles.
+
+## Playlists con la música local (10/11/2026)
+
+- [x] Biblioteca ▸ Local ▸ Canciones: botón **Crear playlist**, que mete en una playlist nueva todas
+  las canciones que muestra la lista (si buscas antes, solo las que coinciden).
+- [x] Selección múltiple en esa lista (el mismo botón y barra que en álbumes y playlists): marcas las
+  canciones que quieras y con «Añadir a playlist» eliges una existente o «Nueva playlist».
+- [x] La playlist puede ir a la cuenta de YouTube Music: cada archivo se busca en YouTube Music
+  (título limpio + artista o duración) y la lista lleva las canciones reales, con sugerencias,
+  Escuchar juntos y reproducción en cualquier sitio. Las que no se encuentran se quedan fuera y se
+  avisa de cuántas. También se puede guardar en el teléfono, como antes.
+- [x] Probado en el teléfono (ADB): 15 de 15 canciones locales encontraron su versión correcta; el
+  diálogo deja elegir YouTube Music. Falta probar la creación de la playlist en la cuenta.

@@ -10,6 +10,7 @@
 		Delete02Icon,
 		DriveIcon,
 		PlayIcon,
+		PlayListAddIcon,
 		RefreshIcon,
 		ShuffleIcon
 	} from '@hugeicons/core-free-icons';
@@ -20,6 +21,9 @@
 	import ErrorState from './ErrorState.svelte';
 	import TrackFilter from './TrackFilter.svelte';
 	import TrackRow from './TrackRow.svelte';
+	import TrackSelectButton from './TrackSelectButton.svelte';
+	import TrackSelectionBar from './TrackSelectionBar.svelte';
+	import { trackSelection } from '$lib/selection.svelte';
 	import * as api from '$lib/api';
 	import { indexCards, indexSongs, match } from '$lib/localsearch';
 	import { t } from '$lib/i18n.svelte';
@@ -27,6 +31,7 @@
 		addLocalFolder,
 		local,
 		openAddToPlaylist,
+		openNewPlaylist,
 		openPlayer,
 		playback,
 		removeLocalFolder,
@@ -80,6 +85,9 @@
 		return () => io.disconnect();
 	}
 	const nowId = $derived(playback.now?.videoId);
+	// Picking songs to put in a playlist: the selection bar's "Add to playlist" offers a new one,
+	// which for files on this phone is a playlist on this phone.
+	const selection = trackSelection(() => songs, () => songs.slice(0, shown), () => 'local');
 	// The song list as one queue — what the Play/Shuffle buttons above it do, and what the queue
 	// panel calls it. Not a `playFrom`: there's no page behind "the music on this disk", so it has
 	// no business landing in recents or the sidebar's last-played order.
@@ -227,7 +235,7 @@
 			</Tabs.Content>
 			<Tabs.Content value="songs">
 				{#if view === 'songs'}
-					<div class="mb-3 flex gap-2">
+					<div class="mb-3 flex flex-wrap items-center gap-2">
 						<Button
 							size="sm"
 							class="gap-2 rounded-full"
@@ -245,6 +253,17 @@
 						>
 							<HugeiconsIcon icon={ShuffleIcon} class="h-4 w-4" /> {t('common.shuffle')}
 						</Button>
+						<!-- Every song the list shows (so a search narrows it first) into a new playlist. -->
+						<Button
+							size="sm"
+							variant="outline"
+							class="gap-2 rounded-full"
+							disabled={!songs.length}
+							onclick={() => openNewPlaylist(songs)}
+						>
+							<HugeiconsIcon icon={PlayListAddIcon} class="h-4 w-4" /> {t('local.create_playlist')}
+						</Button>
+						<TrackSelectButton {selection} />
 					</div>
 					<div class="content-in">
 						{#each songs.slice(0, shown) as song, i (song.video_id)}
@@ -253,6 +272,8 @@
 								index={i}
 								lazy
 								active={song.video_id === nowId}
+								{selection}
+								selectionKey={selection.visibleKeys[i]}
 								onplay={() => {
 									openPlayer();
 									api.playPlaylist(songs, i, undefined, SOURCE);
@@ -264,6 +285,7 @@
 					{#if songs.length > shown}
 						<div {@attach sentinel}></div>
 					{/if}
+					<TrackSelectionBar {selection} from={SOURCE} />
 				{/if}
 			</Tabs.Content>
 		</Tabs.Root>

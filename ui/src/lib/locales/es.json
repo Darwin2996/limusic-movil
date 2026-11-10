@@ -305,7 +305,8 @@
 		"android_read_failed": "Android no pudo leer esa carpeta. Vuelve a elegirla y permite el acceso.",
 		"android_delete_failed": "La carpeta se quitó de la biblioteca, pero no se pudo borrar la copia importada del almacenamiento de la aplicación.",
 		"no_folders": "Todavía no hay carpetas. Añade la carpeta donde está tu música y aparecerá aquí.",
-		"nothing_playable": "Todavía no se encontró nada reproducible en estas carpetas. Buscando archivos mp3, flac, m4a, aac, ogg, opus, wav, wma, aiff, ape, wv y mka."
+		"nothing_playable": "Todavía no se encontró nada reproducible en estas carpetas. Buscando archivos mp3, flac, m4a, aac, ogg, opus, wav, wma, aiff, ape, wv y mka.",
+		"create_playlist": "Crear playlist"
 	},
 	"settings": {
 		"title": "Configuración",
@@ -837,7 +838,11 @@
 			"device": "Este dispositivo",
 			"device_desc": "No se necesita cuenta, se mantiene en este equipo",
 			"device_only": "Se guarda en este equipo, no necesitas una cuenta. Inicia sesión si prefieres crear playlists directamente en YouTube Music.",
-			"local_files": "Canciones en tu equipo solo pueden guardase en playlists en este dispositivo."
+			"local_files": "Se guarda con tus archivos: solo suena en este dispositivo, sin sugerencias ni Escuchar juntos.",
+			"local_files_account": "Se buscará cada canción en YouTube Music, así la playlist tiene sugerencias, funciona en Escuchar juntos y suena en cualquier sitio. Las que no aparezcan se quedan fuera.",
+			"matching": "Buscando en YouTube Music… {done} de {total}",
+			"none_found": "No se encontró ninguna de estas canciones en YouTube Music.",
+			"missing": "{count} canciones no se encontraron en YouTube Music y se quedaron fuera."
 		}
 	},
 	"integrations": {

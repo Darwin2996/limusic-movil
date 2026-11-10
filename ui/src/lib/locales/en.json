@@ -426,7 +426,8 @@
 		"android_read_failed": "Android could not read that folder. Choose it again and allow access.",
 		"android_delete_failed": "The folder was removed from the library, but its imported copy could not be deleted from app storage.",
 		"no_folders": "No folders yet. Add the one your music sits in and it shows up here.",
-		"nothing_playable": "Nothing playable found in those folders yet. Looking for mp3, flac, m4a, aac, ogg, opus, wav, wma, aiff, ape, wv and mka files."
+		"nothing_playable": "Nothing playable found in those folders yet. Looking for mp3, flac, m4a, aac, ogg, opus, wav, wma, aiff, ape, wv and mka files.",
+		"create_playlist": "Create playlist"
 	},
 	"settings": {
 		"title": "Settings",
@@ -958,7 +959,11 @@
 			"device": "This device",
 			"device_desc": "No account needed, it stays on this computer",
 			"device_only": "It stays on this computer, no account needed. Sign in to make playlists on YouTube Music instead.",
-			"local_files": "Songs from your computer can only go in a playlist on this device."
+			"local_files": "It stays with your files: it only plays on this device, with no suggestions or Listen Together.",
+			"local_files_account": "Each song is looked up on YouTube Music, so the playlist gets suggestions, works in Listen Together and plays anywhere. Songs that can't be found are left out.",
+			"matching": "Searching YouTube Music… {done} of {total}",
+			"none_found": "None of these songs were found on YouTube Music.",
+			"missing": "{count} songs weren't found on YouTube Music and were left out."
 		}
 	},
 	"integrations": {

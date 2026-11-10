@@ -2,6 +2,8 @@
 	// "New playlist", from the sidebar, the Library page and the picker's first row. One dialog for
 	// all three, so where a playlist ends up is decided the same way wherever it is made: on the
 	// YouTube Music account, or on this machine (#251), which is the only choice signed out.
+	// Songs that are files on this device can go on the account too: each is looked up on YouTube
+	// Music first (lib/ytmatch.ts), and the playlist holds the songs found there.
 	import { HugeiconsIcon } from '@hugeicons/svelte';
 	import { CloudIcon, ComputerIcon } from '@hugeicons/core-free-icons';
 	import * as Dialog from '$lib/components/ui/dialog';
@@ -10,6 +12,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import * as api from '$lib/api';
 	import { t } from '$lib/i18n.svelte';
+	import { matchOnYouTube } from '$lib/ytmatch';
 	import {
 		addSongsToPlaylist,
 		auth,
@@ -34,36 +37,57 @@
 
 	let title = $state('');
 	let creating = $state(false);
+	/** Looking the device's songs up on YouTube Music: how far it has got. */
+	let matching = $state<{ done: number; total: number } | null>(null);
+	let cancelled = false;
 
 	const signedIn = $derived(!!auth.account?.signedIn);
 	const songs = $derived(ui.newPlaylist?.songs ?? []);
-	// A file on disk has no YouTube identity, so a batch holding one can only go on this machine.
+	// A file on disk has no YouTube identity of its own: on the account it becomes the song found
+	// for it on YouTube Music.
 	const hasLocalFiles = $derived(songs.some((s) => api.isLocalId(s.video_id)));
-	const local = $derived(!signedIn || hasLocalFiles || where === 'device');
+	const local = $derived(!signedIn || where === 'device');
 
 	// A fresh name each time it opens, so a cancelled one isn't waiting in the box next time.
 	$effect(() => {
 		if (ui.newPlaylist) title = '';
 	});
 
-	const close = () => (ui.newPlaylist = null);
+	const close = () => {
+		cancelled = true;
+		ui.newPlaylist = null;
+	};
 
 	async function create() {
 		const name = title.trim();
 		if (!name || creating) return;
 		creating = true;
+		cancelled = false;
 		// Taken now: closing the dialog below clears `ui.newPlaylist`, and the songs with it.
-		const batch = songs;
+		let batch = songs;
+		let missing = 0;
 		try {
+			if (!local && hasLocalFiles) {
+				const result = await matchOnYouTube(batch, (done, total) => (matching = { done, total }), () => cancelled);
+				if (cancelled) return;
+				if (!result.found.length) {
+					toast.error(t('dialogs.new_playlist.none_found'));
+					return;
+				}
+				batch = result.found;
+				missing = result.missing.length;
+			}
 			const item = await createLibraryPlaylist(name, local);
 			close();
 			// Adding says what happened on its own ("Added to …"), which covers the creation too.
 			if (batch.length) await addSongsToPlaylist(item, batch);
 			else toast.success(t('toasts.playlist_created', { title: name }));
+			if (missing) toast(t('dialogs.new_playlist.missing', { count: missing }));
 		} catch (e) {
 			toast.error(String(e));
 		} finally {
 			creating = false;
+			matching = null;
 		}
 	}
 
@@ -109,13 +133,10 @@
 					aria-label={t('dialogs.new_playlist.where')}
 				>
 					{#each options as o (o.value)}
-						{@const off = o.value === 'account' && hasLocalFiles}
 						<label
-							class="flex items-center gap-3 rounded-2xl border px-3 py-2.5 transition-colors has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 {off
-								? 'cursor-not-allowed opacity-50'
-								: 'cursor-pointer hover:bg-accent/10'}"
+							class="flex cursor-pointer items-center gap-3 rounded-2xl border px-3 py-2.5 transition-colors hover:bg-accent/10 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
 						>
-							<RadioGroup.Item value={o.value} disabled={off} />
+							<RadioGroup.Item value={o.value} disabled={creating} />
 							<HugeiconsIcon icon={o.icon} class="h-5 w-5 shrink-0 text-muted-foreground" />
 							<div class="min-w-0">
 								<div class="text-sm font-medium">{t(`dialogs.new_playlist.${o.label}`)}</div>
@@ -125,13 +146,26 @@
 					{/each}
 				</RadioGroup.Root>
 				{#if hasLocalFiles}
-					<p class="text-xs text-muted-foreground">{t('dialogs.new_playlist.local_files')}</p>
+					<p class="text-xs text-muted-foreground">
+						{local ? t('dialogs.new_playlist.local_files') : t('dialogs.new_playlist.local_files_account')}
+					</p>
 				{/if}
 			{:else}
 				<p class="flex items-start gap-2 text-xs text-muted-foreground">
 					<HugeiconsIcon icon={ComputerIcon} class="mt-px h-3.5 w-3.5 shrink-0" />
 					{t('dialogs.new_playlist.device_only')}
 				</p>
+			{/if}
+			{#if matching}
+				<div class="flex flex-col gap-2" role="status" aria-live="polite">
+					<span class="text-sm">{t('dialogs.new_playlist.matching', { done: matching.done, total: matching.total })}</span>
+					<div class="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+						<div
+							class="h-full rounded-full bg-primary transition-[width] duration-300"
+							style="width:{matching.total ? Math.round((matching.done / matching.total) * 100) : 0}%"
+						></div>
+					</div>
+				</div>
 			{/if}
 			<Dialog.Footer>
 				<Button type="button" variant="outline" onclick={close}>{t('common.cancel')}</Button>
