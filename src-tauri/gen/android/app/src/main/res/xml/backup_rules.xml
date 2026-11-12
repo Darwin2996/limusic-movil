@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android Auto Backup up to Android 11 (data_extraction_rules.xml covers 12 and later). Only what
+     can't be got back: the database (listening history, playlists on this phone, settings, the
+     session) and the web view's storage (the friends account, appearance). Music files, downloads
+     and caches stay out: Google keeps 25 MB per app and skips the whole backup past that. -->
+<full-backup-content>
+    <include domain="root" path="limusic.sqlite" />
+    <include domain="root" path="limusic.sqlite-wal" />
+    <include domain="root" path="covers" />
+    <include domain="root" path="app_webview/Default/Local Storage" />
+    <include domain="root" path="app_webview/Default/IndexedDB" />
+</full-backup-content>

@@ -382,12 +382,11 @@ export async function setPublicProfile(on: boolean) {
 	await updateProfile({ public_profile: on });
 }
 
-/** Someone's profile by @username, or null when there is nobody by that name. */
+/** Someone's profile by @username, or null when there is nobody by that name. Through
+ *  `find_profile` (amigos-4.sql): profiles can't be listed, only looked up by exact name. */
 export async function profileByUsername(username: string): Promise<Profile | null> {
 	const { data, error } = await db()
-		.from('profiles')
-		.select('*')
-		.eq('username', username.trim().replace(/^@/, ''))
+		.rpc('find_profile', { name: username.trim().replace(/^@/, '') })
 		.maybeSingle();
 	if (error) throw error;
 	return data as Profile | null;
@@ -479,18 +478,14 @@ export async function loadFriends() {
 export async function addFriend(username: string) {
 	const me = friends.me;
 	if (!me) return;
-	const { data: other } = await db()
-		.from('profiles')
-		.select('*')
-		.eq('username', username.trim().replace(/^@/, ''))
-		.maybeSingle();
+	const other = await profileByUsername(username);
 	if (!other) throw new Error('not_found');
 	if (other.id === me.id) throw new Error('self');
 	const existing = friends.list.find((f) => f.profile.id === other.id);
 	if (existing?.status === 'incoming') return acceptFriend(other.id);
 	if (existing) throw new Error('already');
 	const { error } = await db().from('friendships').insert({ requester: me.id, addressee: other.id });
-	if (error) throw error;
+	if (error) throw new Error(error.message.includes('rate_limited') ? 'rate_limited' : error.message);
 	await loadFriends();
 }
 
@@ -578,7 +573,7 @@ export async function inviteFriend(id: string) {
 	const { error } = await db()
 		.from('invites')
 		.insert({ from_user: me.id, to_user: id, invite: makeInvite(lt.serverUrl, lt.roomCode) });
-	if (error) throw error;
+	if (error) throw new Error(error.message.includes('rate_limited') ? 'rate_limited' : error.message);
 }
 
 /** Join the room an invite is for, as the Listen Together dialog's own Join does. */

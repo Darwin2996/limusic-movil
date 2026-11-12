@@ -7,8 +7,9 @@ import { getVersion } from '@tauri-apps/api/app';
 const REPO = 'Darwin2996/limusic-movil';
 const DISMISSED = 'apk_update_dismissed';
 
-/** `url` is the release page; `apk` the APK attached to it, when there is one. */
-export type ApkRelease = { version: string; url: string; apk: string | null };
+/** `url` is the release page; `apk` the APK attached to it, when there is one, and `sha256` the
+ *  hash GitHub computed when it was uploaded, which the download has to match before it installs. */
+export type ApkRelease = { version: string; url: string; apk: string | null; sha256: string | null };
 
 /** The latest release if it is newer than this build and not dismissed, else null. */
 export async function checkApkUpdate(): Promise<ApkRelease | null> {
@@ -20,13 +21,14 @@ export async function checkApkUpdate(): Promise<ApkRelease | null> {
 		const release = (await res.json()) as {
 			tag_name?: string;
 			html_url?: string;
-			assets?: { name: string; browser_download_url: string }[];
+			assets?: { name: string; browser_download_url: string; digest?: string | null }[];
 		};
 		const version = release.tag_name?.replace(/^v/, '');
 		if (!version || !release.html_url) return null;
 		if (!isNewer(version, await getVersion()) || dismissed() === version) return null;
-		const apk = release.assets?.find((a) => a.name.endsWith('.apk'))?.browser_download_url ?? null;
-		return { version, url: release.html_url, apk };
+		const asset = release.assets?.find((a) => a.name.endsWith('.apk'));
+		const sha256 = asset?.digest?.startsWith('sha256:') ? asset.digest.slice(7).toLowerCase() : null;
+		return { version, url: release.html_url, apk: asset?.browser_download_url ?? null, sha256 };
 	} catch {
 		return null; // offline: ask again next launch
 	}

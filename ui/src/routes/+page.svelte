@@ -18,6 +18,7 @@
 	import RecentRail from '$lib/components/RecentRail.svelte';
 	import Shelf from '$lib/components/Shelf.svelte';
 	import ForgottenFavourites from '$lib/components/ForgottenFavourites.svelte';
+	import FriendsNow from '$lib/components/FriendsNow.svelte';
 	import FamiliarArtists from '$lib/components/FamiliarArtists.svelte';
 	import HomeLayoutDialog from '$lib/components/HomeLayoutDialog.svelte';
 	import TrackRowSkeleton from '$lib/components/TrackRowSkeleton.svelte';
@@ -447,6 +448,8 @@
 		     Space is the only thing between sections, no rules (#319), so it has to be generous:
 		     any closer than gap-12 and a heading reads as the caption of the row above it. -->
 		<div class="content-in flex flex-col gap-12">
+			<!-- Friends playing right now, above everything: it is the one row that is live. -->
+			<FriendsNow />
 			{#each visible as block (block.id)}
 				{#if block.shelf}
 					<Shelf

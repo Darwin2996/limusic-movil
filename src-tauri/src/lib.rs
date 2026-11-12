@@ -181,7 +181,11 @@ async fn android_move_to_background(app: tauri::AppHandle) -> Result<(), String>
 /// Download a release APK and open Android's installer (the in-app update, `lib/apkupdate.ts`).
 /// Errs with `INSTALL_PERMISSION` when installs from the app still have to be allowed.
 #[tauri::command]
-async fn install_apk_update(app: tauri::AppHandle, url: String) -> Result<(), String> {
+async fn install_apk_update(
+    app: tauri::AppHandle,
+    url: String,
+    sha256: Option<String>,
+) -> Result<(), String> {
     #[cfg(target_os = "android")]
     {
         // Only GitHub release assets: the URL comes from the API answer, never from a page.
@@ -190,13 +194,16 @@ async fn install_apk_update(app: tauri::AppHandle, url: String) -> Result<(), St
         }
         let plugin = app.state::<AndroidPlayerPluginHandle>().0.clone();
         return plugin
-            .run_mobile_plugin_async::<()>("installApkUpdate", serde_json::json!({ "url": url }))
+            .run_mobile_plugin_async::<()>(
+                "installApkUpdate",
+                serde_json::json!({ "url": url, "sha256": sha256 }),
+            )
             .await
             .map_err(|e| e.to_string());
     }
     #[cfg(not(target_os = "android"))]
     {
-        let _ = (app, url);
+        let _ = (app, url, sha256);
         Err("In-app updates are Android only".into())
     }
 }
@@ -942,13 +949,14 @@ pub fn run() {
                     &format!("{}: {e}", data_dir.display()),
                 ),
             };
-            // Log only: nothing tells the UI yet, so to the user this is an empty library. A
-            // notice needs a startup-event path to the SPA, and there is none to reuse.
+            // Noted in the fresh database, so the UI can tell the user once (`player.svelte.ts`)
+            // rather than show an empty library with no word of why.
             if let Some(aside) = &quarantined {
                 tracing::warn!(
                     "started with a fresh database; the previous one is at {}",
                     aside.display()
                 );
+                db.set_setting("db_quarantined", &aside.display().to_string());
             }
             let db = Arc::new(db);
 
@@ -1758,10 +1766,13 @@ fn spawn_android_player_bridge(
     tauri::async_runtime::spawn(async move {
         use tokio::time::{sleep, Instant};
 
-        // Fast while audio plays or is about to (position, track end); slow when paused or idle,
-        // where only a notification next/previous can arrive and a second's delay is fine.
+        // Fast while audio plays or is about to (position, track end); slow when paused, where only
+        // a notification or headset button can arrive and a second and a half is fine; slower
+        // still with nothing loaded, where there is nothing to report at all. Each poll wakes the
+        // phone's CPU, so this is what an idle app costs in battery.
         const ACTIVE: Duration = Duration::from_millis(250);
-        const IDLE: Duration = Duration::from_secs(1);
+        const IDLE: Duration = Duration::from_millis(1500);
+        const EMPTY: Duration = Duration::from_secs(4);
         let mut period = ACTIVE;
         let next_poll = sleep(ACTIVE);
         tokio::pin!(next_poll);
@@ -1784,7 +1795,13 @@ fn spawn_android_player_bridge(
                         .await
                     {
                         Ok(snapshot) => {
-                            period = if snapshot.is_playing || snapshot.play_when_ready { ACTIVE } else { IDLE };
+                            period = if snapshot.is_playing || snapshot.play_when_ready {
+                                ACTIVE
+                            } else if snapshot.is_idle {
+                                EMPTY
+                            } else {
+                                IDLE
+                            };
                             monitor.apply(snapshot);
                         }
                         Err(error) => tracing::debug!(%error, "Android player status poll failed"),

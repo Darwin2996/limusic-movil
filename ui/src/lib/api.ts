@@ -878,8 +878,10 @@ export const deleteAndroidLocalFolder = (path: string) => invoke<void>('delete_a
 /** Android: tell the backend whether the phone is on mobile data (picks `quality_mobile`). */
 export const setMetered = (metered: boolean) => invoke<void>('set_metered', { metered });
 /** Android: download a release APK and open the system installer (`INSTALL_PERMISSION` error
- *  while installs from the app still have to be allowed). */
-export const installApkUpdate = (url: string) => invoke<void>('install_apk_update', { url });
+ *  while installs from the app still have to be allowed, `CHECKSUM` when the download isn't the
+ *  file GitHub has, `sha256` being the hash it published). */
+export const installApkUpdate = (url: string, sha256: string | null) =>
+	invoke<void>('install_apk_update', { url, sha256 });
 /** How far that download has got, in bytes (`total` -1 until known). */
 export const apkUpdateProgress = () =>
 	invoke<{ received: number; total: number }>('apk_update_progress');

@@ -91,7 +91,7 @@
 	// The song list as one queue — what the Play/Shuffle buttons above it do, and what the queue
 	// panel calls it. Not a `playFrom`: there's no page behind "the music on this disk", so it has
 	// no business landing in recents or the sidebar's last-played order.
-	const SOURCE = 'Local music';
+	const SOURCE = $derived(t('local.source'));
 	const folderLabel = (path: string) => /Android/i.test(navigator.userAgent)
 		? path.replaceAll('\\', '/').split('/').filter(Boolean).at(-1) ?? path
 		: path;

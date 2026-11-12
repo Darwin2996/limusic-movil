@@ -1525,3 +1525,17 @@ input[type='range'].range:active::-webkit-slider-thumb {
 		scroll-behavior: auto !important;
 	}
 }
+
+/* On a touch screen, a small control (an artist name, "See all", "Add") gets a hit area bigger
+   than what it draws: a finger needs about 44px, and these are 16-28px tall. The area spills over
+   the space around it, not over the neighbouring controls in the same line. */
+@media (pointer: coarse) {
+	.tap-area {
+		position: relative;
+	}
+	.tap-area::after {
+		content: '';
+		position: absolute;
+		inset: -12px -4px;
+	}
+}

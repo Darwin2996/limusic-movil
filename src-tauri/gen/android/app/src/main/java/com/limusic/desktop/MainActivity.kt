@@ -14,10 +14,12 @@ class MainActivity : TauriActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
-    // Phones stay in portrait: a phone in landscape is wider than the web layout's tablet
-    // breakpoint and would get the desktop UI. Tablets keep rotating.
-    if (resources.configuration.smallestScreenWidthDp < 600) {
-      requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    // Phones stay in portrait (the manifest says so): a phone in landscape is wider than the web
+    // layout's tablet breakpoint and would get the desktop UI. Declared there rather than asked for
+    // here, because on HyperOS asking at runtime turns the phone's rotation lock off system-wide.
+    // Tablets rotate: they let go of it, which is the one case that asks.
+    if (resources.configuration.smallestScreenWidthDp >= 600) {
+      requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     }
   }
 

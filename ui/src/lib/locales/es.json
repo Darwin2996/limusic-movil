@@ -211,7 +211,8 @@
 			"mixed_for_you": "Mixes para ti",
 			"daily_discover": "Tu descubrimiento diario",
 			"music_videos": "Videos musicales para ti"
-		}
+		},
+		"shortcuts_desc_touch": "Lo que más usas, a un toque desde el inicio. Elige de tu biblioteca."
 	},
 	"artist": {
 		"subscribe": "Suscribirse",
@@ -306,7 +307,8 @@
 		"android_delete_failed": "La carpeta se quitó de la biblioteca, pero no se pudo borrar la copia importada del almacenamiento de la aplicación.",
 		"no_folders": "Todavía no hay carpetas. Añade la carpeta donde está tu música y aparecerá aquí.",
 		"nothing_playable": "Todavía no se encontró nada reproducible en estas carpetas. Buscando archivos mp3, flac, m4a, aac, ogg, opus, wav, wma, aiff, ape, wv y mka.",
-		"create_playlist": "Crear playlist"
+		"create_playlist": "Crear playlist",
+		"source": "Música local"
 	},
 	"settings": {
 		"title": "Configuración",
@@ -838,8 +840,8 @@
 			"account": "YouTube Music",
 			"account_desc": "En tu cuenta, donde sea que inicies sesión",
 			"device": "Este dispositivo",
-			"device_desc": "No se necesita cuenta, se mantiene en este equipo",
-			"device_only": "Se guarda en este equipo, no necesitas una cuenta. Inicia sesión si prefieres crear playlists directamente en YouTube Music.",
+			"device_desc": "No necesita cuenta, se guarda en este dispositivo",
+			"device_only": "Se guarda en este dispositivo, no necesitas cuenta. Inicia sesión si prefieres crear playlists directamente en YouTube Music.",
 			"local_files": "Se guarda con tus archivos: solo suena en este dispositivo, sin sugerencias ni Escuchar juntos.",
 			"local_files_account": "Se buscará cada canción en YouTube Music, así la playlist tiene sugerencias, funciona en Escuchar juntos y suena en cualquier sitio. Las que no aparezcan se quedan fuera.",
 			"matching": "Buscando en YouTube Music… {done} de {total}",
@@ -1053,7 +1055,8 @@
 		"comment_write_unconfirmed": "No se pudo confirmar si tu comentario se publicó. Revisa antes de enviarlo otra vez.",
 		"comment_posted": "Publicado. Se mostrará la siguiente vez que los comentarios carguen.",
 		"comment_delete_failed": "No se pudo eliminar. Revisa tu conexión e intenta otra vez.",
-		"comment_gone": "Ese comentario ya no existe."
+		"comment_gone": "Ese comentario ya no existe.",
+		"db_quarantined": "Los datos de la app estaban dañados y se ha empezado de cero. La copia dañada se ha guardado aparte."
 	},
 	"history": {
 		"title": "Historial",
@@ -1324,7 +1327,10 @@
 		"clear_title": "¿Borrar el historial de reproducción?",
 		"clear_desc": "Esto olvida cada reproducción contada en este dispositivo, tus estadísticas se reinician y \"En Repetición\" se vacía. Tu historial de YouTube Music no se toca.",
 		"clear_confirm": "Borrar historial",
-		"cleared": "Historial de reproducción borrado"
+		"cleared": "Historial de reproducción borrado",
+		"share_theirs": "{percent} de sus reproducciones",
+		"when_theirs": "Cuándo escucha",
+		"persona_hint_theirs": "Escucha más entre las {from} y {to}."
 	},
 	"columns": {
 		"label": "Columnas",
@@ -1362,7 +1368,8 @@
 		"failed": "No se pudo descargar la actualización: {error}",
 		"progress": "Descargando… {percent} % · {done} de {size} MB",
 		"progress_unknown": "Descargando… {done} MB",
-		"opening": "Abriendo el instalador…"
+		"opening": "Abriendo el instalador…",
+		"checksum": "La descarga no coincide con la publicada en GitHub y no se ha instalado. Inténtalo de nuevo."
 	},
 	"downloads": {
 		"title": "Descargas",
@@ -1444,6 +1451,7 @@
 		"stats_updated": "Actualizado {when}. Contado en su teléfono.",
 		"stats_none": "Todavía no ha publicado estadísticas.",
 		"your_playlists": "Tus playlists compartidas",
+		"listening_now": "Tus amigos ahora",
 		"errors": {
 			"username_taken": "Ese nombre de usuario ya existe.",
 			"username_invalid": "Usa de 3 a 20 letras, números, puntos o guiones bajos.",
@@ -1451,7 +1459,8 @@
 			"self": "Ese eres tú.",
 			"already": "Ya sois amigos o la solicitud está pendiente.",
 			"no_room": "No se pudo crear la sala.",
-			"generic": "Algo falló: {error}"
+			"generic": "Algo falló: {error}",
+			"rate_limited": "Has enviado demasiadas solicitudes o invitaciones. Prueba dentro de un rato."
 		}
 	}
 }

@@ -241,7 +241,7 @@ pub async fn get_queue(state: St<'_>) -> Result<serde_json::Value, String> {
 /// `visitor_data`) and internal blobs (`queue_json`, `queue_index`, `queue_position`) never cross
 /// into the webview: they'd otherwise ship the login credential to the renderer on every open, and
 /// the webview can't overwrite them either.
-const UI_SETTINGS: [&str; 33] = [
+const UI_SETTINGS: [&str; 34] = [
     "volume",
     "proxy",
     "quality",
@@ -275,6 +275,8 @@ const UI_SETTINGS: [&str; 33] = [
     "crossfade",
     "crossfade_secs",
     "locale",
+    // Set when startup found the database damaged and began a fresh one; the UI says so once.
+    "db_quarantined",
 ];
 
 /// Resolve the music video for `video_id` and hand back a `limusicvideo://` URL the player view

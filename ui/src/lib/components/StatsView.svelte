@@ -58,7 +58,8 @@
 		onRetry,
 		title,
 		empty,
-		footer
+		footer,
+		theirs = false
 	}: {
 		stats: ListeningStats | null;
 		/** The range the tabs show; `shown` is the one `stats` answers, which lags while it loads. */
@@ -70,6 +71,8 @@
 		/** What to say when nothing has been counted, in place of the stats page's own words. */
 		empty?: { title: string; text: string };
 		footer?: Snippet;
+		/** Another person's stats (a profile): the words say "their", not "your". */
+		theirs?: boolean;
 	} = $props();
 
 	const tag = $derived(tagOf(currentLocale.id));
@@ -348,7 +351,7 @@
 									</div>
 									{#if stats.secs}
 										<div class="mt-0.5 text-sm text-muted-foreground">
-											{t('stats.share', { percent: percent.format(top.secs / stats.secs) })}
+											{t(theirs ? 'stats.share_theirs' : 'stats.share', { percent: percent.format(top.secs / stats.secs) })}
 										</div>
 									{/if}
 								</div>
@@ -425,9 +428,9 @@
 				{/if}
 
 				<section>
-					<SectionHeading strokeWidth={STROKE} title={t('stats.when')} icon={Clock01Icon} />
+					<SectionHeading strokeWidth={STROKE} title={t(theirs ? 'stats.when_theirs' : 'stats.when')} icon={Clock01Icon} />
 					<div class="grid gap-8 lg:grid-cols-[16rem_minmax(0,1fr)]">
-						<ListeningDayparts hours={stats.hours} />
+						<ListeningDayparts hours={stats.hours} {theirs} />
 						<div class="min-w-0">
 							{#if when}
 								<div class="mb-4 flex flex-wrap gap-x-10 gap-y-3">

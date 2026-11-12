@@ -107,7 +107,12 @@
 			await action();
 			if (done) toast.success(done);
 		} catch (e) {
-			toast.error(t('friends.errors.generic', { error: e instanceof Error ? e.message : String(e) }));
+			const code = e instanceof Error ? e.message : String(e);
+			toast.error(
+				['already', 'no_room', 'rate_limited'].includes(code)
+					? t(`friends.errors.${code as 'already'}`)
+					: t('friends.errors.generic', { error: code })
+			);
 		} finally {
 			busy = false;
 		}
@@ -311,6 +316,7 @@
 						bind:range
 						shown={range}
 						title={isMe ? t('stats.title') : t('friends.their_stats')}
+						theirs={!isMe}
 						empty={{ title: t('friends.stats_empty_title'), text: t('friends.stats_empty') }}
 					>
 						{#snippet footer()}

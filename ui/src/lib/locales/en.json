@@ -261,7 +261,8 @@
 			"daily_discover": "Your daily discover",
 			"music_videos": "Music videos for you"
 		},
-		"all_hidden": "Everything on home is switched off."
+		"all_hidden": "Everything on home is switched off.",
+		"shortcuts_desc_touch": "Whatever you reach for most, one tap from home. Pick from your library."
 	},
 	"history": {
 		"title": "History",
@@ -332,7 +333,10 @@
 		"clear_title": "Clear listening history?",
 		"clear_desc": "This forgets every play counted on this device, so your stats start over and On Repeat empties. Your YouTube Music history isn't touched.",
 		"clear_confirm": "Clear history",
-		"cleared": "Listening history cleared"
+		"cleared": "Listening history cleared",
+		"share_theirs": "{percent} of their plays",
+		"when_theirs": "When they listen",
+		"persona_hint_theirs": "They listen most between {from} and {to}."
 	},
 	"artist": {
 		"subscribe": "Subscribe",
@@ -427,7 +431,8 @@
 		"android_delete_failed": "The folder was removed from the library, but its imported copy could not be deleted from app storage.",
 		"no_folders": "No folders yet. Add the one your music sits in and it shows up here.",
 		"nothing_playable": "Nothing playable found in those folders yet. Looking for mp3, flac, m4a, aac, ogg, opus, wav, wma, aiff, ape, wv and mka files.",
-		"create_playlist": "Create playlist"
+		"create_playlist": "Create playlist",
+		"source": "Local music"
 	},
 	"settings": {
 		"title": "Settings",
@@ -959,8 +964,8 @@
 			"account": "YouTube Music",
 			"account_desc": "On your account, wherever you sign in",
 			"device": "This device",
-			"device_desc": "No account needed, it stays on this computer",
-			"device_only": "It stays on this computer, no account needed. Sign in to make playlists on YouTube Music instead.",
+			"device_desc": "No account needed, it stays on this device",
+			"device_only": "It stays on this device, no account needed. Sign in to make playlists on YouTube Music instead.",
 			"local_files": "It stays with your files: it only plays on this device, with no suggestions or Listen Together.",
 			"local_files_account": "Each song is looked up on YouTube Music, so the playlist gets suggestions, works in Listen Together and plays anywhere. Songs that can't be found are left out.",
 			"matching": "Searching YouTube Music… {done} of {total}",
@@ -1231,7 +1236,8 @@
 		"subscribed": "Subscribed to {name}",
 		"unsubscribed": "Unsubscribed",
 		"signed_in_as": "Signed in as {name}",
-		"switched_to": "Switched to {name}"
+		"switched_to": "Switched to {name}",
+		"db_quarantined": "The app's data was damaged, so it started fresh. The damaged copy was kept aside."
 	},
 	"import": {
 		"button": "Import",
@@ -1362,7 +1368,8 @@
 		"failed": "Couldn't download the update: {error}",
 		"progress": "Downloading… {percent}% · {done} of {size} MB",
 		"progress_unknown": "Downloading… {done} MB",
-		"opening": "Opening the installer…"
+		"opening": "Opening the installer…",
+		"checksum": "The download doesn't match the one published on GitHub, so it wasn't installed. Try again."
 	},
 	"downloads": {
 		"title": "Downloads",
@@ -1444,6 +1451,7 @@
 		"stats_updated": "Updated {when}. Counted on their phone.",
 		"stats_none": "They haven't published any stats yet.",
 		"your_playlists": "Your shared playlists",
+		"listening_now": "Your friends now",
 		"errors": {
 			"username_taken": "That username is taken.",
 			"username_invalid": "Use 3 to 20 letters, numbers, dots or underscores.",
@@ -1451,7 +1459,8 @@
 			"self": "That's you.",
 			"already": "You are already friends, or the request is pending.",
 			"no_room": "Couldn't create the room.",
-			"generic": "Something went wrong: {error}"
+			"generic": "Something went wrong: {error}",
+			"rate_limited": "You've sent too many requests or invites. Try again in a while."
 		}
 	}
 }

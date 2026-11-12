@@ -52,7 +52,7 @@
 	{@render children?.()}
 	{#if onMore}
 		<button
-			class="flex shrink-0 cursor-pointer items-center gap-0.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+			class="tap-area flex shrink-0 cursor-pointer items-center gap-0.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
 			onclick={onMore}
 		>
 			{more}

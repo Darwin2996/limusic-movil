@@ -56,6 +56,9 @@ class DeleteImportedFolderArgs {
 @InvokeArg
 class InstallApkArgs {
   lateinit var url: String
+  /** The hash GitHub published for the asset; the download must match it. Null on a release
+   *  older than GitHub's digests, which installs unchecked as before. */
+  var sha256: String? = null
 }
 
 @InvokeArg
@@ -146,7 +149,7 @@ class PlayerPlugin(private val activity: Activity) : Plugin(activity) {
   @Command
   fun installApkUpdate(invoke: Invoke) {
     val args = invoke.parseArgs(InstallApkArgs::class.java)
-    ApkUpdater.install(activity, args.url) { error ->
+    ApkUpdater.install(activity, args.url, args.sha256) { error ->
       if (error == null) invoke.resolve() else invoke.reject(error)
     }
   }

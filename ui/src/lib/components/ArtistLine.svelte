@@ -29,7 +29,7 @@
 		{#each linked as run}
 			{#if run.id}
 				<button
-					class="cursor-pointer text-left hover:text-foreground hover:underline"
+					class="tap-area cursor-pointer text-left hover:text-foreground hover:underline"
 					onclick={(e) => {
 						e.stopPropagation();
 						goto(`/artist/${encodeURIComponent(run.id!)}`);

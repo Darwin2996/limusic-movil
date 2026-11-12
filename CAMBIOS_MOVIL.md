@@ -384,3 +384,34 @@ Detalle y estado de cada tarea en `TAREAS_MOVIL.md`. Resumen de lo aplicado:
   comprobada); el único borrado fue la reinstalación del 6/11.
 - [ ] Las pruebas de Rust nuevas no se han podido ejecutar en el PC: el crate `player` no compila
   para escritorio en esta copia (error previo, ajeno a este cambio).
+
+## Arreglos de la auditoría (12/11/2026)
+
+- [x] **Bloqueo de rotación:** la app ya no lo quita al abrirse. En HyperOS, pedir la orientación
+  vertical desde el código al arrancar activaba el giro automático de todo el sistema; ahora se
+  declara en el manifiesto (`screenOrientation="portrait"`). Las tablets siguen girando.
+- [x] **Pantalla apagada:** el reproductor mantiene CPU y wifi despiertos mientras suena
+  (`setWakeMode(WAKE_MODE_NETWORK)` + permiso `WAKE_LOCK`), para que el streaming no se corte ni
+  deje de pasar a la siguiente.
+- [x] **Batería:** el puente con el reproductor consulta cada 1,5 s en pausa (antes 1 s) y cada 4 s
+  sin nada cargado.
+- [x] **Versión release:** lo publicado es ahora la variante release de Gradle: no depurable (nadie
+  puede leer los datos de la app por USB), reducida con R8 y con el mismo paquete y firma, así que
+  se instala encima sin perder datos. `-Debuggable` en el script genera la de pruebas.
+- [x] **Copia de seguridad:** Android Auto Backup guarda la base de datos (estadísticas, playlists
+  del móvil, ajustes, sesión), las portadas y el almacenamiento de la web (cuenta de amigos,
+  apariencia). Se restaura al reinstalar con la misma cuenta de Google. La música y las descargas
+  no entran (límite de 25 MB de Google).
+- [x] **Actualizaciones verificadas:** la APK descargada se compara con el SHA-256 que publica
+  GitHub antes de abrir el instalador.
+- [x] **Base de datos dañada:** si al arrancar estaba corrupta y se empezó de cero, ahora se avisa.
+- [x] **Supabase** (`supabase/amigos-4.sql`): los perfiles ya no se pueden listar (solo el propio,
+  los vinculados, los públicos o buscando un @usuario exacto con `find_profile`), y hay límite de
+  30 solicitudes y 60 invitaciones por hora.
+- [x] **Diseño:** saludo de Inicio sin cortar el nombre; sin buscador duplicado en Inicio en el
+  móvil; fila «Tus amigos ahora» en Inicio; reproductor con título y «me gusta» en la misma fila y
+  sin repetir el álbum cuando coincide con el artista; zonas táctiles más grandes en nombres de
+  artista, «Ver todo» y «Añadir»; «Música local» traducido; textos de escritorio cambiados en el
+  móvil; estadísticas de otros en tercera persona; idioma de la página según el de la app.
+- [x] `crates/player/src/video.rs` vuelve a compilar en escritorio (importaba de la raíz del crate
+  tras separar Android).

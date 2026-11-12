@@ -2,9 +2,12 @@
 # update notice (ui/src/lib/apkupdate.ts) offers to install.
 #
 #   powershell -File scripts/android-release.ps1 -Version 1.4.2 [-Notes "What changed"] [-NoPublish]
+#   powershell -File scripts/android-release.ps1 -Version 1.4.2 -Debuggable   (testing over USB)
 #
 # Builds the frontend, the Rust library (release profile) and the arm64 APK of the installed
-# package, com.limusic.desktop.debug, so it installs over the app without losing its data.
+# package, com.limusic.desktop.debug, so it installs over the app without losing its data. The
+# APK is Gradle's release variant (shrunk, not debuggable); -Debuggable builds the debug one, which
+# DevTools and `adb run-as` can open, and never publishes it.
 #
 # Signing: Android only accepts an update signed with the key of the installed APK, and Gradle signs
 # this build with the debug keystore of the machine that runs it (~/.android/debug.keystore). Build
@@ -16,8 +19,12 @@ param(
 	[Parameter(Mandatory = $true)][string]$Version,
 	[string]$Notes = '',
 	[string]$Repo = 'Darwin2996/limusic-movil',
-	[switch]$NoPublish
+	[switch]$NoPublish,
+	# A debuggable build, for testing over USB (DevTools, the app's files). Never published.
+	[switch]$Debuggable
 )
+if ($Debuggable) { $NoPublish = $true }
+$variant = if ($Debuggable) { 'Debug' } else { 'Release' }
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
@@ -71,13 +78,14 @@ if ($cargoExit -ne 0) { throw 'Rust build failed' }
 Copy-Item 'target\aarch64-linux-android\release\libapp_lib.so' `
 	'src-tauri\gen\android\app\src\main\jniLibs\arm64-v8a\libapp_lib.so' -Force
 # --rerun-tasks: an incremental package keeps the old APK's dead space (217 MB instead of 80).
-.\src-tauri\gen\android\gradlew.bat -p src-tauri\gen\android :app:assembleArm64Debug `
-	-x rustBuildArm64Debug --rerun-tasks --console=plain
+.\src-tauri\gen\android\gradlew.bat -p src-tauri\gen\android ":app:assembleArm64$variant" `
+	-x "rustBuildArm64$variant" --rerun-tasks --console=plain
 if ($LASTEXITCODE -ne 0) { throw 'APK build failed' }
 
 New-Item -ItemType Directory -Force dist | Out-Null
 $apk = "dist\LiMusic-$Version.apk"
-Copy-Item 'src-tauri\gen\android\app\build\outputs\apk\arm64\debug\app-arm64-debug.apk' $apk -Force
+$out = $variant.ToLower()
+Copy-Item "src-tauri\gen\android\app\build\outputs\apk\arm64\$out\app-arm64-$out.apk" $apk -Force
 "APK: $apk ($([math]::Round((Get-Item $apk).Length / 1MB)) MB)"
 if ($NoPublish) { return }
 

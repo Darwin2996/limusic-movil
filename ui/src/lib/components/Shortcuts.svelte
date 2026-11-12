@@ -91,6 +91,8 @@
 			busy = null;
 		}
 	}
+	// No dragging on a touch screen: the empty state only offers what works there.
+	const touch = typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches;
 </script>
 
 <!-- A drag cancelled with Esc never reaches `drop`, and only fires `dragleave` if the pointer happens
@@ -104,7 +106,7 @@
 			     end of the grid forever, and a ragged one whenever the last row was short. -->
 			<button
 				onclick={() => (picking = true)}
-				class="flex shrink-0 cursor-pointer items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+				class="tap-area flex shrink-0 cursor-pointer items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
 			>
 				<HugeiconsIcon icon={Add01Icon} class="h-3.5 w-3.5" />
 				{t('common.add')}
@@ -146,7 +148,7 @@
 				<span class="min-w-0">
 					<span class="block text-sm font-medium">{t('home.add_shortcut')}</span>
 					<span class="block text-xs text-muted-foreground">
-						{t('home.shortcuts_desc')}
+						{t(touch ? 'home.shortcuts_desc_touch' : 'home.shortcuts_desc')}
 					</span>
 				</span>
 			</button>

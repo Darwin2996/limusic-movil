@@ -81,6 +81,9 @@ class PlaybackService : MediaSessionService() {
     // Pause when headphones are unplugged or a Bluetooth device disconnects (Android's "becoming
     // noisy"), rather than carrying on out of the phone's speaker.
     player.setHandleAudioBecomingNoisy(true)
+    // Hold the CPU and Wi-Fi while it plays: with the screen off, Android otherwise lets them sleep
+    // and a stream stalls, or the next song never starts.
+    player.setWakeMode(C.WAKE_MODE_NETWORK)
     (getSystemService(Context.AUDIO_SERVICE) as AudioManager).registerAudioDeviceCallback(headphones, handler)
     applyGain()
     player.addListener(object : Player.Listener {

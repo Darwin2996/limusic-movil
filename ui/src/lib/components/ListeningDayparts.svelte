@@ -10,7 +10,7 @@
 	import { DAYPARTS, dayparts, listened, tagOf, type Daypart } from '$lib/stats';
 	import { currentLocale, t } from '$lib/i18n.svelte';
 
-	let { hours }: { hours: number[] } = $props();
+	let { hours, theirs = false }: { hours: number[]; theirs?: boolean } = $props();
 
 	const tag = $derived(tagOf(currentLocale.id));
 	const percent = $derived(new Intl.NumberFormat(tag, { style: 'percent' }));
@@ -109,7 +109,7 @@
 			{t(`stats.persona.${top.key}`)}
 		</div>
 		<p class="mt-1 text-xs text-muted-foreground">
-			{t('stats.persona_hint', { from: at(top.from), to: at(top.to) })}
+			{t(theirs ? 'stats.persona_hint_theirs' : 'stats.persona_hint', { from: at(top.from), to: at(top.to) })}
 		</p>
 	</div>
 </div>

@@ -36,6 +36,11 @@ function getInitialLocale(): LocaleId {
 }
 
 let activeLocale = $state<LocaleId>(getInitialLocale());
+/** The page's `lang`, so a screen reader reads it in the right language (index.html says en). */
+const tagPage = (locale: LocaleId) => {
+	if (browser) document.documentElement.lang = locale.replace('_', '-');
+};
+tagPage(activeLocale);
 
 /**
  * Tell Rust which language to ask YouTube for (`hl`). Home shelf titles, the mood chips, playlist
@@ -52,6 +57,7 @@ export function pushLocaleToRust(locale: LocaleId): Promise<void> {
 export function setLocale(locale: LocaleId): Promise<void> {
 	if (!Object.hasOwn(translations, locale)) return Promise.resolve();
 	activeLocale = locale;
+	tagPage(locale);
 	localStorage.setItem(LOCALE_STORAGE_KEY, locale);
 	return pushLocaleToRust(locale);
 }

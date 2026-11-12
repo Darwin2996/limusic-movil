@@ -1266,7 +1266,7 @@ export type Toast = { msg: string; kind: 'info' | 'success' | 'error' };
 // true and the toast would never clear. It also means a repeated message can't cut its own retry short.
 let seq = 0;
 
-function show(msg: string, kind: Toast['kind']) {
+function show(msg: string, kind: Toast['kind'], ms = 2500) {
 	const id = ++seq;
 	// The one chokepoint every `toast.error(String(e))` and every `playback-error` event goes
 	// through, so a dead connection is worded once here instead of at forty call sites. Anything
@@ -1274,14 +1274,14 @@ function show(msg: string, kind: Toast['kind']) {
 	ui.toast = { msg: friendlyNetError(msg, t('errors.unreachable')), kind };
 	setTimeout(() => {
 		if (seq === id) ui.toast = null;
-	}, 2500);
+	}, ms);
 }
 
 /** Sonner-shaped. Bare `toast(msg)` is a neutral notice; .success/.error pick the icon. */
 export const toast = Object.assign((msg: string) => show(msg, 'info'), {
 	info: (msg: string) => show(msg, 'info'),
 	success: (msg: string) => show(msg, 'success'),
-	error: (msg: string) => show(msg, 'error')
+	error: (msg: string, opts?: { duration?: number }) => show(msg, 'error', opts?.duration)
 });
 
 export function openShare(item: BrowseItem) {
@@ -1662,6 +1662,11 @@ export function initApp(mini = false): () => void {
 			prefs.discordRpc = s.discord_rpc === 'true';
 			prefs.autoplay = s.autoplay !== 'false';
 			prefs.scrobbling = parseScrobbleConfig(s.lastfm_config).enabled;
+			// The database was damaged at startup and a fresh one took its place: say so once.
+			if (s.db_quarantined) {
+				toast.error(t('toasts.db_quarantined'), { duration: 15_000 });
+				api.setSetting('db_quarantined', '').catch(() => {});
+			}
 			// Half of what the app shows is YouTube's own text, and Rust asks for it in the language
 			// this setting holds (#274). It reads the setting at startup, before the SPA exists to
 			// tell it anything, so the two disagree on a fresh install, on a language taken from the

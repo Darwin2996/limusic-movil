@@ -97,7 +97,7 @@
 			if (done) toast.success(done);
 		} catch (e) {
 			const code = e instanceof Error ? e.message : String(e);
-			const known = ['username_taken', 'username_invalid', 'not_found', 'self', 'already', 'no_room'];
+			const known = ['username_taken', 'username_invalid', 'not_found', 'self', 'already', 'no_room', 'rate_limited'];
 			toast.error(
 				known.includes(code)
 					? t(`friends.errors.${code as 'username_taken'}`)

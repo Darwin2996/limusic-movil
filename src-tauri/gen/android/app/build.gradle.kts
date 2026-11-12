@@ -33,6 +33,13 @@ android {
             isMinifyEnabled = false
         }
         getByName("release") {
+            // What gets published (scripts/android-release.ps1). The same package and key as the
+            // debug builds people installed until 1.4.7, so it updates over them and keeps their
+            // data, but not debuggable: nothing can read the app's files (the session) over USB.
+            applicationIdSuffix = ".debug"
+            signingConfig = signingConfigs.getByName("debug")
+            // The audio and video proxies serve the player over http on the loopback.
+            manifestPlaceholders["usesCleartextTraffic"] = "true"
             isMinifyEnabled = true
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }

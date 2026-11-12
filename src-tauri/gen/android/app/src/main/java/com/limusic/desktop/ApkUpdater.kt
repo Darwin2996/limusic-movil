@@ -9,6 +9,7 @@ import androidx.core.content.FileProvider
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
+import java.security.MessageDigest
 
 /** The in-app update (lib/apkupdate.ts): download a release's APK into the cache and hand it to
  * Android's package installer, which asks the user to confirm. Android never installs silently.
@@ -25,8 +26,10 @@ object ApkUpdater {
 
   /** Download [url] and open the installer. [done] gets null on success, else why it stopped:
    * `INSTALL_PERMISSION` when the user still has to allow installs from LiMusic (the settings
-   * screen for that has just been opened), or the download error. Runs off the main thread. */
-  fun install(activity: Activity, url: String, done: (String?) -> Unit) {
+   * screen for that has just been opened), `CHECKSUM` when the file isn't the one GitHub hashed
+   * as [sha256] (a broken or tampered download, never handed to the installer), or the download
+   * error. Runs off the main thread. */
+  fun install(activity: Activity, url: String, sha256: String?, done: (String?) -> Unit) {
     Thread {
       try {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
@@ -44,7 +47,12 @@ object ApkUpdater {
         val file = File(activity.cacheDir, "update.apk")
         received = 0L
         total = -1L
-        download(url, file)
+        val hash = download(url, file)
+        if (sha256 != null && !hash.equals(sha256, ignoreCase = true)) {
+          file.delete()
+          done("CHECKSUM")
+          return@Thread
+        }
         val uri = FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", file)
         activity.startActivity(
           Intent(Intent.ACTION_VIEW)
@@ -58,8 +66,9 @@ object ApkUpdater {
     }.start()
   }
 
-  /** GitHub serves a release asset through a redirect to its storage host, so follow those. */
-  private fun download(url: String, out: File) {
+  /** GitHub serves a release asset through a redirect to its storage host, so follow those.
+   * Returns the file's SHA-256, hex. */
+  private fun download(url: String, out: File): String {
     var target = URL(url)
     repeat(5) {
       val connection = target.openConnection() as HttpURLConnection
@@ -73,6 +82,7 @@ object ApkUpdater {
         }
         HttpURLConnection.HTTP_OK -> {
           total = connection.contentLengthLong
+          val digest = MessageDigest.getInstance("SHA-256")
           connection.inputStream.use { input ->
             out.outputStream().use { output ->
               val buffer = ByteArray(64 * 1024)
@@ -80,11 +90,12 @@ object ApkUpdater {
                 val n = input.read(buffer)
                 if (n < 0) break
                 output.write(buffer, 0, n)
+                digest.update(buffer, 0, n)
                 received += n
               }
             }
           }
-          return
+          return digest.digest().joinToString("") { "%02x".format(it) }
         }
         else -> throw IllegalStateException("HTTP ${connection.responseCode}")
       }

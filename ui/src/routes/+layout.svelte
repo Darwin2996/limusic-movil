@@ -187,14 +187,16 @@
 				.catch(() => {});
 		}, 300);
 		try {
-			await installApkUpdate(release.apk);
+			await installApkUpdate(release.apk, release.sha256);
 			apkUpdate = null;
 		} catch (e) {
 			const error = String(e);
 			toast.error(
 				error.includes('INSTALL_PERMISSION')
 					? t('apk_update.allow_installs')
-					: t('apk_update.failed', { error })
+					: error.includes('CHECKSUM')
+						? t('apk_update.checksum')
+						: t('apk_update.failed', { error })
 			);
 		} finally {
 			clearInterval(poll);

@@ -173,7 +173,13 @@
 		return cur?.video_id === playback.now?.videoId ? cur : null;
 	});
 	const local = $derived(!!playback.now && api.isLocalId(playback.now.videoId));
-	const album = $derived(playback.now?.album ?? currentSong?.album);
+	// Left out when it only repeats the artist, as a self-titled album or a file tagged that way
+	// does: "Estopa / Estopa" under the title says nothing twice.
+	const album = $derived.by(() => {
+		const name = playback.now?.album ?? currentSong?.album;
+		const by = (playback.now?.artists ?? '').trim().toLowerCase();
+		return name && name.trim().toLowerCase() !== by ? name : undefined;
+	});
 	const albumId = $derived(!local ? currentSong?.album_id : undefined);
 
 	// Pop the heart once on a like (not an unlike); the animation's end re-arms it.
@@ -517,7 +523,7 @@
 		{#if !big}
 			<!-- 3:2 with the tabs on a phone: an even split left the cover a third of the width. -->
 			<section
-				class="relative z-0 min-w-0 flex-1 flex-col px-6 pt-4 pb-6 lg:px-10 flex max-md:flex-[3_1_0%] max-md:pb-2"
+				class="relative z-0 min-w-0 flex-1 flex-col px-6 pt-4 pb-6 lg:px-10 flex max-md:flex-[3_1_0%] max-md:px-4 max-md:pb-2"
 			>
 				<!-- The way out on the left, the Song/Video switch in the middle. -->
 				<div class="grid h-10 shrink-0 grid-cols-[1fr_auto_1fr] items-center">
@@ -568,7 +574,9 @@
 						<!-- What's playing. Title, artists, album: three steps of size and colour, so
 						     the eye lands on the title and the album never competes with it. The title
 						     scales with the picture, so it reads as part of it rather than a caption. -->
-						<div class="mt-6 flex flex-col gap-2 md:flex-row md:items-start md:gap-3">
+						<!-- One row on a phone too: stacked, the like and menu buttons took a line of
+						     their own under the title, and that line came out of the picture's size. -->
+						<div class="mt-6 flex flex-row items-start gap-3 max-md:mt-4">
 							<div class="min-w-0 flex-1">
 								<h1
 									class="line-clamp-2 font-heading leading-[1.15] font-bold tracking-tight [overflow-wrap:anywhere]"
