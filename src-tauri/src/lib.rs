@@ -38,6 +38,7 @@ mod nativevideo;
 mod notify;
 mod orchestrator;
 mod potoken;
+mod remote_listens;
 mod romanize;
 mod session;
 mod sleep;
@@ -1529,6 +1530,7 @@ pub fn run() {
             commands::listenbrainz_disconnect,
             commands::listenbrainz_status,
             commands::listenbrainz_profile,
+            commands::sync_remote_listens,
             commands::theater_fullscreen,
             commands::release_notes,
             commands::can_self_update,

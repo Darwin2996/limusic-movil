@@ -327,7 +327,7 @@
 		"nothing_in_range": "Nothing played in this period.",
 		"empty_title": "Your stats start here",
 		"empty": "Play a few songs and this page fills in with what you listen to, when, and for how long.",
-		"on_device": "Counted on this device from what you play in Limusic. Nothing is sent anywhere.",
+		"on_device": "Counted on this device from what you play in Limusic, plus what you play on your other devices: from ListenBrainz when it is connected, or from your YouTube Music history (approximate).",
 		"clear": "Clear listening history",
 		"clear_title": "Clear listening history?",
 		"clear_desc": "This forgets every play counted on this device, so your stats start over and On Repeat empties. Your YouTube Music history isn't touched.",

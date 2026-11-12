@@ -77,7 +77,8 @@
 		onNotificationLike,
 		openExternal,
 		setMetered,
-		setNotificationLiked
+		setNotificationLiked,
+		syncRemoteListens
 	} from '$lib/api';
 	import { checkApkUpdate, dismissApkUpdate, type ApkRelease } from '$lib/apkupdate';
 	import { initDownloads } from '$lib/downloads.svelte';
@@ -145,6 +146,13 @@
 	const hasBackBar = $derived(/^\/(artist|album|playlist|list|history|friends)(\/|$)/.test(page.url.pathname));
 
 	// Friends see what this phone plays (when sharing is on); friends.svelte.ts sends changes only.
+	const syncListens = () => {
+		if (isAndroid && !document.hidden) syncRemoteListens().catch(() => {});
+	};
+	// On launch once the account is known (the history needs the session), and on a change of it.
+	$effect(() => {
+		if (auth.account?.signedIn) syncListens();
+	});
 	$effect(() => {
 		if (isAndroid && friends.me) publishNowPlaying(playback.now, !playback.paused).catch(() => {});
 	});
@@ -340,6 +348,9 @@
 		const teardownApp = initApp();
 		const teardownDownloads = isAndroid ? initDownloads() : null;
 		const teardownFriends = isAndroid ? initFriends() : null;
+		// What was played on the PC, into this phone's stats, each time the app comes back to the
+		// front, which is when there can be something new. The first run is the effect below.
+		document.addEventListener('visibilitychange', syncListens);
 		// The notification's heart rates the track the way the player's own heart does.
 		const likeListener = isAndroid ? onNotificationLike(() => toggleNowPlayingRating('like')) : null;
 		const teardownZoom = initZoom();
@@ -350,6 +361,7 @@
 			backListener?.then((l) => l.unregister());
 			teardownDownloads?.();
 			teardownFriends?.();
+			document.removeEventListener('visibilitychange', syncListens);
 			likeListener?.then((u) => u());
 			connection?.removeEventListener('change', reportNetwork);
 			teardownApp();

@@ -1319,7 +1319,7 @@
 		"nothing_in_range": "Nada se reprodujo en este periodo.",
 		"empty_title": "Tus estadísticas inician aquí",
 		"empty": "Reproduce algunas canciones y esta pagina se llenara con lo que escuchas, cuando y por cuanto tiempo.",
-		"on_device": "Calculado en este dispositivo a partir de lo que reproduces en Limusic. No se envía ninguna información.",
+		"on_device": "Calculado en este dispositivo a partir de lo que reproduces en Limusic, más lo que escuchas en tus otros dispositivos: desde ListenBrainz si lo tienes conectado, o desde tu historial de YouTube Music (aproximado).",
 		"clear": "Borrar el historial de reproducción",
 		"clear_title": "¿Borrar el historial de reproducción?",
 		"clear_desc": "Esto olvida cada reproducción contada en este dispositivo, tus estadísticas se reinician y \"En Repetición\" se vacía. Tu historial de YouTube Music no se toca.",

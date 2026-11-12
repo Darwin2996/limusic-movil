@@ -269,6 +269,9 @@ impl Db {
         // Migrate pre-Phase-4 DBs that predate the loudness_db column. Errors ("duplicate column")
         // on fresh DBs are expected and ignored — the cache is disposable anyway.
         let _ = conn.execute("ALTER TABLE stream_url_cache ADD COLUMN loudness_db REAL", []);
+        // Where a listen came from: NULL for one counted on this device, else the service it was
+        // imported from (`remote_listens.rs`).
+        let _ = conn.execute("ALTER TABLE listens ADD COLUMN origin TEXT", []);
         // Same for the AlbumArtist tag, which older scans read but never stored. The SCAN_VERSION
         // bump in local.rs is what refills it; this only makes the column exist.
         let _ = conn.execute("ALTER TABLE local_tracks ADD COLUMN album_artist TEXT", []);
@@ -849,6 +852,54 @@ impl Db {
         )
         .ok()
         .map(|_| conn.last_insert_rowid())
+    }
+
+    /// Add a play heard on another device (`remote_listens.rs`), unless this song already has a
+    /// listen within `window` secs of `played_at`: that is the same play, counted here or imported
+    /// before. The song's metadata is only written when the song is new, so what this device knows
+    /// about it (artist links, album) is never replaced by the import's thinner copy.
+    pub fn import_listen(
+        &self,
+        video_id: &str,
+        song_json: &str,
+        played_at: i64,
+        secs: i64,
+        origin: &str,
+        window: i64,
+    ) -> bool {
+        let conn = self.0.lock().unwrap();
+        let known: bool = conn
+            .query_row(
+                "SELECT EXISTS(SELECT 1 FROM listens WHERE video_id = ?1 AND ABS(played_at - ?2) <= ?3)",
+                rusqlite::params![video_id, played_at, window],
+                |r| r.get(0),
+            )
+            .unwrap_or(true);
+        if known {
+            return false;
+        }
+        let _ = conn.execute(
+            "INSERT OR IGNORE INTO listen_songs(video_id, song_json) VALUES(?1, ?2)",
+            [video_id, song_json],
+        );
+        conn.execute(
+            "INSERT INTO listens(video_id, played_at, secs, origin) VALUES(?1, ?2, ?3, ?4)",
+            rusqlite::params![video_id, played_at, secs, origin],
+        )
+        .is_ok()
+    }
+
+    /// Unix secs of the local midnight that starts the day `now` falls in.
+    pub fn local_day_start(&self, now: i64) -> i64 {
+        self.0
+            .lock()
+            .unwrap()
+            .query_row(
+                "SELECT CAST(strftime('%s', ?1, 'unixepoch', 'localtime', 'start of day', 'utc') AS INTEGER)",
+                [now],
+                |r| r.get(0),
+            )
+            .unwrap_or(now - now.rem_euclid(86_400))
     }
 
     pub fn set_listen_secs(&self, id: i64, secs: i64) {
@@ -1771,6 +1822,23 @@ mod tests {
     }
 
     /// On Repeat's old `plays` table moves into `listens`, length standing in for time heard.
+    #[test]
+    fn an_imported_listen_is_added_once_and_never_doubles_a_local_one() {
+        let d = db();
+        d.record_listen("a", "{\"local\":1}", 10_000, 200);
+        // The same play, as the other device's scrobble of it: it started a little earlier.
+        assert!(!d.import_listen("a", "{}", 9_900, 200, "listenbrainz", 300));
+        // A different play of the same song, hours later, and a song this device never played.
+        assert!(d.import_listen("a", "{}", 30_000, 200, "listenbrainz", 300));
+        assert!(d.import_listen("b", "{\"b\":1}", 30_500, 100, "listenbrainz", 300));
+        // Importing the same listens again adds nothing.
+        assert!(!d.import_listen("a", "{}", 30_000, 200, "listenbrainz", 300));
+        assert!(!d.import_listen("b", "{}", 30_500, 100, "listenbrainz", 300));
+        let l = d.listening(0, 100_000);
+        assert_eq!(l.songs.len(), 2);
+        assert_eq!(l.songs.iter().map(|s| s.2).sum::<i64>(), 500);
+    }
+
     #[test]
     fn opening_the_db_moves_plays_into_listens() {
         let dir = qtest_dir("plays-to-listens");

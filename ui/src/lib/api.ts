@@ -808,6 +808,10 @@ export interface ListeningStats {
 	streak: number;
 	bestStreak: number;
 }
+/** Add what was played on the account's other devices to this one's listening history, from
+ *  ListenBrainz when it is connected and the YouTube Music history otherwise. Resolves with how
+ *  many plays were new. Cheap to call often: Rust skips a run made moments after the last. */
+export const syncRemoteListens = () => invoke<number>('sync_remote_listens');
 /** `since`: unix secs where the window starts, 0 for all time. It always ends now. */
 export const listeningStats = (since: number) =>
 	invoke<ListeningStats>('listening_stats', { since });

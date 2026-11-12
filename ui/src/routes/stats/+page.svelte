@@ -53,6 +53,17 @@
 		untrack(() => load(r));
 	});
 
+	// Plays made on other devices (ListenBrainz, or the YouTube Music history): fetched on the way
+	// in, and the page redrawn when there were any.
+	$effect(() => {
+		api
+			.syncRemoteListens()
+			.then((added) => {
+				if (added) load(range);
+			})
+			.catch(() => {});
+	});
+
 	let confirming = $state(false);
 	let clearing = $state(false);
 	async function clearHistory() {

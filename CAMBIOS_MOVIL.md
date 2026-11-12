@@ -371,3 +371,16 @@ Detalle y estado de cada tarea en `TAREAS_MOVIL.md`. Resumen de lo aplicado:
 - [x] El tick de «ya está en tus playlists» queda desactivado por defecto, con ajuste en Apariencia.
 - [x] Probado en el teléfono (ADB): estadísticas publicadas, perfil propio y de un amigo correctos.
   La compatibilidad necesita que el amigo actualice y publique sus estadísticas.
+
+## Estadísticas con lo escuchado en otros dispositivos (12/11/2026)
+
+- [x] Las estadísticas del móvil suman lo escuchado en el PC (`remote_listens.rs`,
+  `sync_remote_listens`): desde **ListenBrainz** si está conectado en los dos dispositivos (exacto:
+  hora, duración e id de YouTube de cada reproducción), y si no, desde el **historial de YouTube
+  Music** (aproximado: lo nuevo desde la última comprobación, cada canción una vez, sin hora real).
+- [x] Se sincroniza al abrir la app, al volver a ella y al entrar en Estadísticas. Lo que ya contó
+  el propio móvil no se duplica. El tiempo escuchado de lo importado es la duración de la canción.
+- [x] Auditoría: las actualizaciones no borran las estadísticas (base de datos del móvil
+  comprobada); el único borrado fue la reinstalación del 6/11.
+- [ ] Las pruebas de Rust nuevas no se han podido ejecutar en el PC: el crate `player` no compila
+  para escritorio en esta copia (error previo, ajeno a este cambio).

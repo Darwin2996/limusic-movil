@@ -1350,6 +1350,39 @@ pub fn play_counts(state: St<'_>) -> std::collections::HashMap<String, i64> {
     state.db.play_counts(0).into_iter().collect()
 }
 
+/// Bring in what was played on the account's other devices (`remote_listens.rs`), so the stats
+/// here cover them too. Answers how many plays were added; cheap to call often, it does nothing
+/// when the last run was moments ago.
+#[tauri::command]
+pub async fn sync_remote_listens(state: St<'_>) -> Result<usize, String> {
+    const EVERY: i64 = 120;
+    let now = now_secs();
+    let last = state.db.get_setting("remote_listens_synced_at").and_then(|s| s.parse::<i64>().ok());
+    if last.is_some_and(|at| now - at < EVERY) {
+        return Ok(0);
+    }
+    // ListenBrainz when it is connected: exact, with the time of every play. Otherwise the
+    // account's YouTube Music history, which only says what was played lately.
+    let added = if let Some(user) =
+        state.db.get_setting("listenbrainz_username").filter(|s| !s.is_empty())
+    {
+        let token = state.db.get_setting("listenbrainz_token").filter(|s| !s.is_empty());
+        crate::remote_listens::from_listenbrainz(&state.db, &user, token.as_deref()).await?
+    } else {
+        // Not stamped as a run: at launch this is asked before the session is restored, and the
+        // ask that follows sign-in has to go through.
+        if !state.it.is_logged_in() {
+            return Ok(0);
+        }
+        let client = metadata_client(&state)?;
+        let groups = state.it.history(client).await.map_err(|e| e.to_string())?;
+        crate::remote_listens::from_history(&state.db, &groups, now)
+    };
+    // Only a run that got through counts against the interval: a failed one is retried at once.
+    state.db.set_setting("remote_listens_synced_at", &now.to_string());
+    Ok(added)
+}
+
 /// The stats page (#396): everything heard since `since` (unix secs, 0 for all time). The page
 /// picks the window, because the calendar it is drawn against is the webview's.
 #[tauri::command]
